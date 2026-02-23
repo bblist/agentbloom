@@ -11,7 +11,7 @@
 - Per-user persistent memory + knowledge base (vector embeddings)
 - Real-time voice I/O (WebSocket + STT + TTS)
 - Tool library (generate_page, update_design, etc.)
-- Primary LLM: Gemini 3.1 Pro, fallbacks: Claude 4.6 / Sonnet 4.6
+- Primary LLM: GPT-4o, fallbacks: Claude 4.6, Gemini 3.2 Pro (design)
 
 ### Gap Analysis & Recommendations
 
@@ -23,7 +23,7 @@
 | **No agent-to-agent delegation** | Single agent bottleneck for complex multi-step tasks | Add sub-agent spawning for parallel work (e.g., generate images while writing copy) |
 | **No rate limiting per user** | One user could drain LLM quota | Per-user token budgets (daily/monthly) tied to plan tier |
 | **No prompt caching** | Repeated similar requests waste tokens | Cache system prompts + knowledge base context chunks |
-| **No fallback chain logic** | If Gemini fails, how does Claude take over? | Define explicit fallback waterfall with retry + model switching |
+| **No fallback chain logic** | If primary LLM fails, how does fallback take over? | Define explicit fallback waterfall with retry + model switching |
 | **No streaming output** | User waits for full response | Stream agent reasoning + output tokens to UI in real-time |
 | **Missing: Agent personality config** | Users should customize agent tone (formal, casual, etc.) | Add personality presets + custom instructions per user |
 | **Missing: Action approval workflow** | Spec mentions "preview before deploy" but no detail | Build approval queue: agent proposes → user reviews → approve/reject/edit → deploy |

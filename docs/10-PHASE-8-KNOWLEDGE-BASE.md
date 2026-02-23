@@ -37,7 +37,7 @@
 - [ ] Metadata per chunk: source document, page number, section, creation date
 
 ### Vector Embeddings
-- [ ] Embedding model: OpenAI text-embedding-3-small (or Gemini embedding)
+- [ ] Embedding model: OpenAI text-embedding-3-small (primary, 1536 dimensions)
 - [ ] Store in pgvector (PostgreSQL extension)
 - [ ] Index: IVFFlat or HNSW for fast approximate search
 - [ ] Batch embedding on upload (async)

@@ -12,8 +12,9 @@
 ### Agent Core
 - [ ] Agent reasoning loop (ReAct pattern): Input → Reason → Act → Observe → Loop
 - [ ] LLM integration layer (abstracted provider interface)
-  - [ ] Gemini 2.0 Flash/Pro connector
-  - [ ] Claude Sonnet 4 connector (fallback)
+  - [ ] OpenAI GPT-4o connector (primary)
+  - [ ] Anthropic Claude 4.6 connector (fallback)
+  - [ ] Google Gemini 3.2 Pro connector (design tasks)
   - [ ] Model switching logic (fallback on error, configurable per task)
 - [ ] System prompt management (per-user context injection)
 - [ ] Conversation memory (short-term: current session, long-term: DB-backed)
@@ -123,8 +124,9 @@ CREATE TABLE agent_configs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     personality VARCHAR(50) DEFAULT 'friendly', -- formal, casual, friendly
-    primary_model VARCHAR(100) DEFAULT 'gemini-2.0-flash',
-    fallback_model VARCHAR(100) DEFAULT 'claude-sonnet-4',
+    primary_model VARCHAR(100) DEFAULT 'gpt-4o',
+    fallback_model VARCHAR(100) DEFAULT 'claude-4.6',
+    design_model VARCHAR(100) DEFAULT 'gemini-3.2-pro',
     token_budget_daily INTEGER DEFAULT 100000,
     token_budget_monthly INTEGER DEFAULT 2000000,
     tokens_used_today INTEGER DEFAULT 0,
@@ -280,7 +282,7 @@ CREATE TABLE form_submissions (
 - [ ] Basic SEO (meta tags, OG) auto-generated
 
 ## Known Risks
-- LLM API costs: Gemini Flash is cheap (~$0.075/1M input tokens), but heavy agent loops could add up. Monitor.
+- LLM API costs: GPT-4o is cost-effective (~$2.50 input / $10.00 output per 1M tokens), but heavy agent loops could add up. Monitor. Claude 4.6 fallback is pricier.
 - Template quality: 25 templates is a lot of front-end work. Consider hiring a designer or using high-quality open-source templates as starting points.
 - Page rendering: Server-side JSON → HTML rendering needs careful design to handle all block types well.
 

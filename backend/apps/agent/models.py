@@ -23,8 +23,8 @@ class AgentConfig(models.Model):
         default="friendly",
     )
     enabled_tools = models.JSONField(default=list, blank=True)  # ["page_builder", "email_send", ...]
-    llm_provider = models.CharField(max_length=50, default="gemini")  # gemini, claude
-    llm_model = models.CharField(max_length=100, default="gemini-2.0-flash")
+    llm_provider = models.CharField(max_length=50, default="openai")  # openai, claude, gemini
+    llm_model = models.CharField(max_length=100, default="gpt-4o")
     temperature = models.FloatField(default=0.7)
     max_tokens = models.IntegerField(default=4096)
     knowledge_base_enabled = models.BooleanField(default=True)

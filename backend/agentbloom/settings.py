@@ -218,11 +218,15 @@ AWS_SES_REGION_ENDPOINT = f"email.{AWS_SES_REGION_NAME}.amazonaws.com"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@nobleblocks.com")
 
 # LLM Configuration
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-DEFAULT_LLM_MODEL = "gemini-2.0-flash"
-FALLBACK_LLM_MODEL = "claude-sonnet-4-20250514"
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+DEFAULT_LLM_PROVIDER = "openai"
+DEFAULT_LLM_MODEL = "gpt-4o"
+FALLBACK_LLM_PROVIDER = "claude"
+FALLBACK_LLM_MODEL = "claude-4.6"
+DESIGN_LLM_PROVIDER = "gemini"
+DESIGN_LLM_MODEL = "gemini-3.2-pro"
 
 # Stock Image APIs
 UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY", "")

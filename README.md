@@ -110,7 +110,7 @@ agentbloom/
 | Database | PostgreSQL 16 + pgvector |
 | Cache | Redis |
 | Auth | Django allauth |
-| LLM | Gemini 2.0 Flash/Pro + Claude Sonnet 4 |
+| LLM | GPT-4o + Claude 4.6 + Gemini 3.2 Pro |
 | Email | AWS SES |
 | Storage | AWS S3 + CloudFront |
 | DNS | AWS Route 53 |

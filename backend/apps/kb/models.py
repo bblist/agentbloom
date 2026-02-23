@@ -52,7 +52,7 @@ class KBChunk(models.Model):
     document = models.ForeignKey(KBDocument, on_delete=models.CASCADE, related_name="chunks")
     content = models.TextField()
     chunk_index = models.IntegerField(default=0)
-    embedding = VectorField(dimensions=1536, null=True, blank=True)  # OpenAI / Gemini embeddings
+    embedding = VectorField(dimensions=1536, null=True, blank=True)  # OpenAI text-embedding-3-small
     token_count = models.IntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)  # page number, section title, etc.
     created_at = models.DateTimeField(default=timezone.now)

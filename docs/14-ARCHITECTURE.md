@@ -21,8 +21,9 @@ graph TB
     end
 
     subgraph "AI / ML Services"
-        GEMINI[Gemini 2.0 Flash/Pro<br/>Primary LLM]
-        CLAUDE[Claude Sonnet 4<br/>Fallback LLM]
+        GPT4O[GPT-4o<br/>Primary LLM]
+        CLAUDE[Claude 4.6<br/>Fallback LLM]
+        GEMINI[Gemini 3.2 Pro<br/>Design Tasks]
         EMBED[Embedding Service<br/>text-embedding-3-small]
         WHISPER[Transcription<br/>Deepgram/Whisper]
         TTS[Text-to-Speech<br/>ElevenLabs]
@@ -56,8 +57,9 @@ graph TB
     NGINX --> DJANGO
     DJANGO --> AGENT
     DJANGO --> CELERY
-    AGENT --> GEMINI
+    AGENT --> GPT4O
     AGENT --> CLAUDE
+    AGENT --> GEMINI
     AGENT --> EMBED
     CELERY --> WHISPER
     CELERY --> TTS

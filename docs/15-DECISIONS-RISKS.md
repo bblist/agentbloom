@@ -34,15 +34,15 @@
 - Upgrade path: migrate to Pinecone if pgvector becomes bottleneck
 
 ### 4. LLM Strategy
-**Decision**: Gemini 2.0 Flash (primary, cheap), Claude Sonnet 4 (fallback, quality)
+**Decision**: GPT-4o (primary, balanced cost/quality), Claude 4.6 (fallback, premium quality), Gemini 3.2 Pro (design tasks)
 
 | Model | Cost (per 1M tokens) | Speed | Quality | Use Case |
 |-------|---------------------|-------|---------|----------|
-| Gemini 2.0 Flash | ~$0.075 input / $0.30 output | Very fast | Good | Day-to-day agent tasks |
-| Gemini 2.0 Pro | ~$1.25 input / $5.00 output | Fast | Excellent | Complex reasoning |
-| Claude Sonnet 4 | ~$3.00 input / $15.00 output | Fast | Excellent | Fallback, creative content |
+| GPT-4o | ~$2.50 input / $10.00 output | Fast | Excellent | Day-to-day agent tasks, reasoning |
+| Claude 4.6 | ~$3.00 input / $15.00 output | Fast | Excellent | Fallback, creative content, complex reasoning |
+| Gemini 3.2 Pro | ~$1.25 input / $5.00 output | Fast | Excellent | Design generation, visual layouts, UI/UX |
 
-**Strategy**: Default to Flash for cost efficiency. Use Pro for complex multi-step reasoning. Claude as fallback when Google APIs are down. Users can configure preference.
+**Strategy**: Default to GPT-4o for general agent tasks — excellent tool use, reliable structured output, strong reasoning. Claude 4.6 as fallback for when OpenAI is down or for tasks requiring nuanced creative writing. Gemini 3.2 Pro for design-oriented tasks (layout generation, color schemes, visual recommendations). Users can configure preference per organization.
 
 ### 5. Hosting: Lightsail vs ECS/EC2
 **Decision**: Start with Lightsail, migrate to ECS when scaling demands it
