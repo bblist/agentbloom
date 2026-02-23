@@ -29,6 +29,19 @@ class Contact(models.Model):
     is_subscribed = models.BooleanField(default=True)
     unsubscribed_at = models.DateTimeField(null=True, blank=True)
     last_activity = models.DateTimeField(null=True, blank=True)
+    # Lifecycle
+    lifecycle_stage = models.CharField(max_length=50, choices=[
+        ("subscriber", "Subscriber"),
+        ("lead", "Lead"),
+        ("marketing_qualified", "Marketing Qualified"),
+        ("sales_qualified", "Sales Qualified"),
+        ("opportunity", "Opportunity"),
+        ("customer", "Customer"),
+        ("evangelist", "Evangelist"),
+    ], default="subscriber")
+    # Communication preferences
+    sms_subscribed = models.BooleanField(default=False)
+    sms_phone = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -269,3 +282,116 @@ class ScoringRule(models.Model):
 
     def __str__(self):
         return f"{self.name} (+{self.points} pts)"
+
+
+class ContactActivity(models.Model):
+    """Unified activity timeline for a contact — all interactions in one place."""
+
+    ACTIVITY_TYPES = [
+        ("email_sent", "Email Sent"),
+        ("email_opened", "Email Opened"),
+        ("email_clicked", "Email Clicked"),
+        ("form_submitted", "Form Submitted"),
+        ("page_visited", "Page Visited"),
+        ("booking_made", "Booking Made"),
+        ("purchase", "Purchase Made"),
+        ("call", "Phone Call"),
+        ("sms_sent", "SMS Sent"),
+        ("sms_received", "SMS Received"),
+        ("note", "Manual Note"),
+        ("tag_added", "Tag Added"),
+        ("deal_stage_changed", "Deal Stage Changed"),
+        ("enrolled", "Enrolled in Course"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, related_name="activities")
+    activity_type = models.CharField(max_length=50, choices=ACTIVITY_TYPES)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)  # Extra context per type
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "contact_activities"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["contact", "-created_at"]),
+        ]
+
+
+class EmailABTest(models.Model):
+    """A/B test for email campaigns — subject line, content, or send time."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name="ab_test")
+    test_type = models.CharField(max_length=50, choices=[
+        ("subject", "Subject Line"),
+        ("content", "Content"),
+        ("send_time", "Send Time"),
+    ])
+    variant_a = models.JSONField(default=dict)  # {subject: "...", html_content: "..."}
+    variant_b = models.JSONField(default=dict)
+    sample_size_pct = models.IntegerField(default=20)  # % of list to test on
+    winning_metric = models.CharField(max_length=50, default="open_rate")  # open_rate, click_rate
+    winner = models.CharField(max_length=1, blank=True)  # "a" or "b"
+    results_a = models.JSONField(default=dict, blank=True)
+    results_b = models.JSONField(default=dict, blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "email_ab_tests"
+
+
+class DeliverabilityMetrics(models.Model):
+    """SES deliverability tracking — reputation, bounce/complaint rates, warmup progress."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="deliverability_metrics")
+    date = models.DateField()
+    emails_sent = models.IntegerField(default=0)
+    delivered = models.IntegerField(default=0)
+    bounced = models.IntegerField(default=0)
+    complaints = models.IntegerField(default=0)
+    bounce_rate = models.FloatField(default=0)
+    complaint_rate = models.FloatField(default=0)
+    reputation_score = models.IntegerField(default=100)  # 0-100
+    # Warmup tracking
+    is_warming = models.BooleanField(default=False)
+    warmup_day = models.IntegerField(default=0)
+    daily_limit = models.IntegerField(default=50)  # Starts low, ramps up
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "deliverability_metrics"
+        unique_together = ("org", "date")
+        ordering = ["-date"]
+
+
+class SMSCampaign(models.Model):
+    """SMS marketing campaign."""
+
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("scheduled", "Scheduled"),
+        ("sending", "Sending"),
+        ("sent", "Sent"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="sms_campaigns")
+    name = models.CharField(max_length=255)
+    message = models.TextField(max_length=1600)  # SMS max length
+    segment = models.ForeignKey(Segment, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="draft")
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    total_sent = models.IntegerField(default=0)
+    total_delivered = models.IntegerField(default=0)
+    total_failed = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "sms_campaigns"
+        ordering = ["-created_at"]

@@ -36,6 +36,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    # Two-factor authentication
+    totp_enabled = models.BooleanField(default=False)
+    totp_secret = models.CharField(max_length=255, blank=True)  # Encrypted TOTP secret
+    totp_backup_codes = models.JSONField(default=list, blank=True)  # Hashed backup codes
+    totp_verified_at = models.DateTimeField(null=True, blank=True)
+    # Security
+    last_login_ip = models.GenericIPAddressField(null=True, blank=True)
+    failed_login_attempts = models.IntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+    password_changed_at = models.DateTimeField(null=True, blank=True)
     plan = models.CharField(
         max_length=50,
         choices=[
@@ -168,3 +178,77 @@ class OnboardingProgress(models.Model):
             self.step_tour,
         ]
         return int(sum(steps) / len(steps) * 100)
+
+
+class UserSession(models.Model):
+    """Track active user sessions for security management."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sessions")
+    session_key = models.CharField(max_length=255, unique=True)
+    device_type = models.CharField(max_length=100, blank=True)  # desktop, mobile, tablet
+    browser = models.CharField(max_length=255, blank=True)
+    os = models.CharField(max_length=255, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    location = models.CharField(max_length=255, blank=True)  # City, Country
+    is_current = models.BooleanField(default=False)
+    last_active = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "user_sessions"
+        ordering = ["-last_active"]
+
+    def __str__(self):
+        return f"{self.user.email} — {self.device_type} ({self.ip_address})"
+
+
+class Invitation(models.Model):
+    """Invite users to join an organization."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="invitations")
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    email = models.EmailField()
+    role = models.CharField(max_length=50, choices=OrgMember.ROLE_CHOICES, default="member")
+    token = models.CharField(max_length=255, unique=True)
+    status = models.CharField(max_length=50, choices=[
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("expired", "Expired"),
+        ("revoked", "Revoked"),
+    ], default="pending")
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "invitations"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Invite {self.email} → {self.org.name} ({self.status})"
+
+
+class APIKey(models.Model):
+    """API key for programmatic access."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="api_keys")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    key_prefix = models.CharField(max_length=10)  # First 8 chars for identification
+    key_hash = models.CharField(max_length=255)  # Hashed full key
+    scopes = models.JSONField(default=list)  # ["read:sites", "write:contacts", ...]
+    is_active = models.BooleanField(default=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "api_keys"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.key_prefix}...)"

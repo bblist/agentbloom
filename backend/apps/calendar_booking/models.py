@@ -20,6 +20,18 @@ class Service(models.Model):
     is_group = models.BooleanField(default=False)
     max_group_size = models.IntegerField(default=1)
     requires_confirmation = models.BooleanField(default=False)
+    # Cancellation policy
+    cancellation_window_hours = models.IntegerField(default=24)  # Hours before appt
+    allow_reschedule = models.BooleanField(default=True)
+    no_show_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Payment at booking
+    require_payment = models.BooleanField(default=False)
+    deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # 0 = full price
+    stripe_price_id = models.CharField(max_length=255, blank=True)
+    # Booking page
+    booking_page_slug = models.SlugField(max_length=255, blank=True)  # Public booking page URL
+    booking_page_description = models.TextField(blank=True)
+    booking_page_image_url = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -93,7 +105,19 @@ class Booking(models.Model):
     cancellation_reason = models.TextField(blank=True)
     google_event_id = models.CharField(max_length=255, blank=True)
     reminder_sent = models.BooleanField(default=False)
+    # Payment
+    payment_status = models.CharField(max_length=50, choices=[
+        ("none", "None"),
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("refunded", "Refunded"),
+    ], default="none")
+    payment_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True)
     series = models.ForeignKey("BookingSeries", on_delete=models.SET_NULL, null=True, blank=True)
+    # Reschedule tracking
+    rescheduled_from = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
+    reschedule_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -184,3 +208,51 @@ class GoogleCalendarConnection(models.Model):
 
     class Meta:
         db_table = "google_calendar_connections"
+
+
+class Waitlist(models.Model):
+    """Waitlist entry for fully-booked services/events."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="waitlists")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, null=True, blank=True, related_name="waitlist")
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True, related_name="waitlist")
+    customer_name = models.CharField(max_length=255)
+    customer_email = models.EmailField()
+    customer_phone = models.CharField(max_length=50, blank=True)
+    preferred_date = models.DateField(null=True, blank=True)
+    preferred_time = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=50, choices=[
+        ("waiting", "Waiting"),
+        ("notified", "Notified"),
+        ("booked", "Booked"),
+        ("expired", "Expired"),
+    ], default="waiting")
+    notified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "waitlists"
+        ordering = ["created_at"]
+
+
+class BookingAnalytics(models.Model):
+    """Aggregated booking analytics per service per period."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="booking_analytics")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="analytics")
+    period = models.DateField()  # Month start
+    total_bookings = models.IntegerField(default=0)
+    completed = models.IntegerField(default=0)
+    cancelled = models.IntegerField(default=0)
+    no_shows = models.IntegerField(default=0)
+    revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    avg_rating = models.FloatField(default=0)
+    popular_times = models.JSONField(default=dict, blank=True)  # {hour: count}
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "booking_analytics"
+        unique_together = ("org", "service", "period")
+        ordering = ["-period"]

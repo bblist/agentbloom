@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "apps.kb",
     "apps.seo",
     "apps.admin_panel",
+    "apps.notifications",
+    "apps.webhooks",
 ]
 
 MIDDLEWARE = [

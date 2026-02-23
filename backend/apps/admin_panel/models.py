@@ -150,3 +150,103 @@ class SystemHealthCheck(models.Model):
     class Meta:
         db_table = "system_health_checks"
         ordering = ["-created_at"]
+
+
+class ImpersonationSession(models.Model):
+    """Track admin impersonation of user accounts."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    admin_user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="impersonation_sessions")
+    target_user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="impersonated_sessions")
+    reason = models.TextField()
+    started_at = models.DateTimeField(default=timezone.now)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    actions_taken = models.JSONField(default=list, blank=True)  # [{action, timestamp, details}]
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        db_table = "impersonation_sessions"
+        ordering = ["-started_at"]
+
+
+class UserLifecycleEvent(models.Model):
+    """Track user lifecycle state transitions for admin overview."""
+
+    STAGE_CHOICES = [
+        ("signup", "Signed Up"),
+        ("onboarding", "Onboarding"),
+        ("activated", "Activated"),
+        ("engaged", "Engaged"),
+        ("at_risk", "At Risk"),
+        ("churned", "Churned"),
+        ("reactivated", "Reactivated"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="lifecycle_events")
+    from_stage = models.CharField(max_length=50, choices=STAGE_CHOICES, blank=True)
+    to_stage = models.CharField(max_length=50, choices=STAGE_CHOICES)
+    trigger = models.CharField(max_length=255, blank=True)  # What caused transition
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "user_lifecycle_events"
+        ordering = ["-created_at"]
+
+
+class RevenueAnalytics(models.Model):
+    """Aggregated revenue analytics for admin dashboard (monthly snapshots)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    mrr = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    arr = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    total_revenue = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    new_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    churned_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    expansion_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    net_revenue_churn_rate = models.FloatField(default=0)  # %
+    logo_churn_rate = models.FloatField(default=0)  # %
+    ltv = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    arpu = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_customers = models.IntegerField(default=0)
+    new_customers = models.IntegerField(default=0)
+    churned_customers = models.IntegerField(default=0)
+    trial_to_paid_rate = models.FloatField(default=0)  # %
+    # Cohort data
+    cohort_data = models.JSONField(default=dict, blank=True)  # {cohort_month: {month_n: retention_pct}}
+    plan_breakdown = models.JSONField(default=dict, blank=True)  # {plan_name: {count, revenue}}
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "revenue_analytics"
+        ordering = ["-period_start"]
+        unique_together = ("period_start", "period_end")
+
+
+class PlatformMetrics(models.Model):
+    """Daily platform-wide usage metrics."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    date = models.DateField(unique=True)
+    total_users = models.IntegerField(default=0)
+    active_users = models.IntegerField(default=0)  # DAU
+    new_signups = models.IntegerField(default=0)
+    total_sites = models.IntegerField(default=0)
+    total_pages_published = models.IntegerField(default=0)
+    total_agent_conversations = models.IntegerField(default=0)
+    total_agent_tokens = models.BigIntegerField(default=0)
+    total_emails_sent = models.IntegerField(default=0)
+    total_bookings = models.IntegerField(default=0)
+    total_courses_active = models.IntegerField(default=0)
+    total_api_requests = models.IntegerField(default=0)
+    avg_response_time_ms = models.IntegerField(default=0)
+    error_rate = models.FloatField(default=0)  # %
+    storage_used_gb = models.FloatField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "platform_metrics"
+        ordering = ["-date"]

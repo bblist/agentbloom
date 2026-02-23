@@ -83,6 +83,10 @@ class Coupon(models.Model):
     discount_value = models.DecimalField(max_digits=10, decimal_places=2)
     max_redemptions = models.IntegerField(default=0)  # 0 = unlimited
     times_redeemed = models.IntegerField(default=0)
+    # Restrictions
+    applies_to_products = models.ManyToManyField(Product, blank=True, related_name="coupons")  # Empty = all products
+    first_purchase_only = models.BooleanField(default=False)
+    min_purchase_amount = models.IntegerField(default=0)  # cents
     valid_from = models.DateTimeField(default=timezone.now)
     valid_until = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -134,6 +138,7 @@ class Subscription(models.Model):
         ("cancelled", "Cancelled"),
         ("trialing", "Trialing"),
         ("paused", "Paused"),
+        ("unpaid", "Unpaid"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -146,6 +151,13 @@ class Subscription(models.Model):
     current_period_end = models.DateTimeField(null=True)
     cancel_at_period_end = models.BooleanField(default=False)
     cancelled_at = models.DateTimeField(null=True, blank=True)
+    # Trial support
+    trial_start = models.DateTimeField(null=True, blank=True)
+    trial_end = models.DateTimeField(null=True, blank=True)
+    # Dunning management
+    dunning_attempts = models.IntegerField(default=0)
+    last_dunning_at = models.DateTimeField(null=True, blank=True)
+    grace_period_end = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -234,3 +246,118 @@ class UsageTracking(models.Model):
     class Meta:
         db_table = "usage_tracking"
         unique_together = ("org", "metric", "period")
+
+
+class TaxRule(models.Model):
+    """Tax rules for products — manual tax rules or Stripe Tax integration."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="tax_rules")
+    name = models.CharField(max_length=255)
+    region = models.CharField(max_length=100)  # Country/State code
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2)  # percentage
+    is_inclusive = models.BooleanField(default=False)  # Tax inclusive in price
+    applies_to = models.JSONField(default=list, blank=True)  # Product IDs or "all"
+    stripe_tax_rate_id = models.CharField(max_length=255, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "tax_rules"
+
+
+class Refund(models.Model):
+    """Refund request and processing."""
+
+    STATUS_CHOICES = [
+        ("requested", "Requested"),
+        ("approved", "Approved"),
+        ("denied", "Denied"),
+        ("processed", "Processed"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name="refunds")
+    stripe_refund_id = models.CharField(max_length=255, blank=True)
+    amount = models.IntegerField()  # cents
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="requested")
+    requested_by_email = models.EmailField(blank=True)
+    approved_by = models.ForeignKey("users.User", on_delete=models.SET_NULL, null=True, blank=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "refunds"
+        ordering = ["-created_at"]
+
+
+class OrderBump(models.Model):
+    """Order bump / upsell displayed at checkout."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="order_bumps")
+    trigger_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="bumps_triggered")
+    bump_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="bump_offers")
+    bump_price = models.ForeignKey(Price, on_delete=models.SET_NULL, null=True, blank=True)
+    headline = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    position = models.CharField(max_length=50, choices=[
+        ("checkout", "At Checkout"),
+        ("post_purchase", "Post-Purchase"),
+    ], default="checkout")
+    is_active = models.BooleanField(default=True)
+    impressions = models.IntegerField(default=0)
+    conversions = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "order_bumps"
+
+
+class CheckoutPage(models.Model):
+    """Branded checkout page (not just Stripe default)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="checkout_pages")
+    slug = models.SlugField(max_length=255)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="checkout_pages")
+    price = models.ForeignKey(Price, on_delete=models.SET_NULL, null=True)
+    headline = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    content_blocks = models.JSONField(default=list, blank=True)  # Custom layout
+    thank_you_url = models.URLField(blank=True)
+    testimonials = models.JSONField(default=list, blank=True)
+    guarantee_text = models.TextField(blank=True)
+    timer_enabled = models.BooleanField(default=False)
+    timer_minutes = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    view_count = models.IntegerField(default=0)
+    conversion_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "checkout_pages"
+        unique_together = ("org", "slug")
+
+
+class RevenueSnapshot(models.Model):
+    """Daily revenue snapshot for financial reporting dashboard."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    org = models.ForeignKey("users.Organization", on_delete=models.CASCADE, related_name="revenue_snapshots")
+    date = models.DateField()
+    revenue = models.IntegerField(default=0)  # cents
+    refunds = models.IntegerField(default=0)  # cents
+    net_revenue = models.IntegerField(default=0)  # cents
+    new_subscriptions = models.IntegerField(default=0)
+    churned_subscriptions = models.IntegerField(default=0)
+    mrr = models.IntegerField(default=0)  # Monthly recurring revenue in cents
+    active_subscribers = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "revenue_snapshots"
+        unique_together = ("org", "date")
+        ordering = ["-date"]

@@ -23,6 +23,8 @@ urlpatterns = [
     path("api/v1/kb/", include("apps.kb.urls")),
     path("api/v1/seo/", include("apps.seo.urls")),
     path("api/v1/admin-panel/", include("apps.admin_panel.urls")),
+    path("api/v1/notifications/", include("apps.notifications.urls")),
+    path("api/v1/webhooks/", include("apps.webhooks.urls")),
     # Allauth
     path("accounts/", include("allauth.urls")),
 ]
