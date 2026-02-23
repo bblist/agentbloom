@@ -2,6 +2,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
+from django.http import HttpResponse
 
 from .models import (
     Site, Page, PageVersion, Template, Component,
@@ -12,6 +13,7 @@ from .serializers import (
     TemplateSerializer, ComponentSerializer, MediaLibrarySerializer,
     FormSerializer, FormSubmissionSerializer, SiteNavigationSerializer,
 )
+from .renderer import render_page_html
 
 
 class SiteViewSet(viewsets.ModelViewSet):
@@ -58,6 +60,35 @@ class PageViewSet(viewsets.ModelViewSet):
             return Response({"error": "Version not found"}, status=404)
         page.content_blocks = version.content_blocks
         page.save()
+        return Response(PageSerializer(page).data)
+
+    @action(detail=True, methods=["get"])
+    def preview(self, request, site_pk=None, pk=None):
+        """Render a live HTML preview of the page."""
+        page = self.get_object()
+        site = page.site
+        html = render_page_html(
+            blocks=page.content_blocks or [],
+            title=page.title,
+            global_styles=site.global_styles or {},
+            seo_title=page.seo_title,
+            seo_description=page.seo_description,
+            og_image_url=page.og_image_url,
+            canonical_url=page.canonical_url,
+            custom_css=page.custom_css,
+            custom_js=page.custom_js,
+            head_code=site.head_code,
+            body_start_code=site.body_start_code,
+            body_end_code=site.body_end_code,
+        )
+        return HttpResponse(html, content_type="text/html")
+
+    @action(detail=True, methods=["post"])
+    def publish_page(self, request, site_pk=None, pk=None):
+        """Publish a single page (set status to published)."""
+        page = self.get_object()
+        page.status = "published"
+        page.save(update_fields=["status", "updated_at"])
         return Response(PageSerializer(page).data)
 
 
