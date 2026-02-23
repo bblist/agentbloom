@@ -72,7 +72,7 @@ When pausing/resuming development:
 - **CDN**: Amazon CloudFront
 - **DNS**: Amazon Route 53
 - **Email**: Amazon SES (custom domains, DKIM/SPF)
-- **LLM**: GPT-4o (primary), Claude 4.6 (fallback), Gemini 3.2 Pro (design tasks)
+- **LLM**: GPT-4o (primary), Claude 4.6 (fallback + design), Gemini 3.2 Pro (design option)
 - **Vector Search**: pgvector in PostgreSQL
 - **Real-time**: Django Channels + Redis (WebSocket)
 - **Hosting**: AWS Lightsail (Phase 0-2), migrate to ECS/EC2 at scale

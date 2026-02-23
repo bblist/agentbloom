@@ -34,15 +34,15 @@
 - Upgrade path: migrate to Pinecone if pgvector becomes bottleneck
 
 ### 4. LLM Strategy
-**Decision**: GPT-4o (primary, balanced cost/quality), Claude 4.6 (fallback, premium quality), Gemini 3.2 Pro (design tasks)
+**Decision**: GPT-4o (primary, balanced cost/quality), Claude 4.6 (fallback + design, premium quality), Gemini 3.2 Pro (design option)
 
 | Model | Cost (per 1M tokens) | Speed | Quality | Use Case |
 |-------|---------------------|-------|---------|----------|
 | GPT-4o | ~$2.50 input / $10.00 output | Fast | Excellent | Day-to-day agent tasks, reasoning |
-| Claude 4.6 | ~$3.00 input / $15.00 output | Fast | Excellent | Fallback, creative content, complex reasoning |
-| Gemini 3.2 Pro | ~$1.25 input / $5.00 output | Fast | Excellent | Design generation, visual layouts, UI/UX |
+| Claude 4.6 | ~$3.00 input / $15.00 output | Fast | Excellent | Fallback, creative content, complex reasoning, design/UI |
+| Gemini 3.2 Pro | ~$1.25 input / $5.00 output | Fast | Excellent | Design generation (alternative), visual layouts, cost-efficient |
 
-**Strategy**: Default to GPT-4o for general agent tasks — excellent tool use, reliable structured output, strong reasoning. Claude 4.6 as fallback for when OpenAI is down or for tasks requiring nuanced creative writing. Gemini 3.2 Pro for design-oriented tasks (layout generation, color schemes, visual recommendations). Users can configure preference per organization.
+**Strategy**: Default to GPT-4o for general agent tasks — excellent tool use, reliable structured output, strong reasoning. Claude 4.6 as fallback and default for design tasks — strong at visual/UI generation, layout creation, color schemes, and creative content. Gemini 3.2 Pro as a cost-efficient design alternative (lower cost per token). Users can configure design provider preference (Claude or Gemini) per organization.
 
 ### 5. Hosting: Lightsail vs ECS/EC2
 **Decision**: Start with Lightsail, migrate to ECS when scaling demands it

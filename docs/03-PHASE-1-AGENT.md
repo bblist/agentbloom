@@ -14,7 +14,7 @@
 - [ ] LLM integration layer (abstracted provider interface)
   - [ ] OpenAI GPT-4o connector (primary)
   - [ ] Anthropic Claude 4.6 connector (fallback)
-  - [ ] Google Gemini 3.2 Pro connector (design tasks)
+  - [ ] Google Gemini 3.2 Pro connector (design option)
   - [ ] Model switching logic (fallback on error, configurable per task)
 - [ ] System prompt management (per-user context injection)
 - [ ] Conversation memory (short-term: current session, long-term: DB-backed)
@@ -126,7 +126,7 @@ CREATE TABLE agent_configs (
     personality VARCHAR(50) DEFAULT 'friendly', -- formal, casual, friendly
     primary_model VARCHAR(100) DEFAULT 'gpt-4o',
     fallback_model VARCHAR(100) DEFAULT 'claude-4.6',
-    design_model VARCHAR(100) DEFAULT 'gemini-3.2-pro',
+    design_model VARCHAR(100) DEFAULT 'claude-4.6',  -- claude or gemini
     token_budget_daily INTEGER DEFAULT 100000,
     token_budget_monthly INTEGER DEFAULT 2000000,
     tokens_used_today INTEGER DEFAULT 0,

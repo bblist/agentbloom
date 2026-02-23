@@ -227,8 +227,8 @@ DEFAULT_LLM_PROVIDER = "openai"
 DEFAULT_LLM_MODEL = "gpt-4o"
 FALLBACK_LLM_PROVIDER = "claude"
 FALLBACK_LLM_MODEL = "claude-4.6"
-DESIGN_LLM_PROVIDER = "gemini"
-DESIGN_LLM_MODEL = "gemini-3.2-pro"
+DESIGN_LLM_PROVIDER = "claude"  # Claude + Gemini both capable; Claude default
+DESIGN_LLM_MODEL = "claude-4.6"
 
 # Stock Image APIs
 UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY", "")

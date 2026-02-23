@@ -23,7 +23,7 @@ graph TB
     subgraph "AI / ML Services"
         GPT4O[GPT-4o<br/>Primary LLM]
         CLAUDE[Claude 4.6<br/>Fallback LLM]
-        GEMINI[Gemini 3.2 Pro<br/>Design Tasks]
+        GEMINI[Gemini 3.2 Pro<br/>Design Option]
         EMBED[Embedding Service<br/>text-embedding-3-small]
         WHISPER[Transcription<br/>Deepgram/Whisper]
         TTS[Text-to-Speech<br/>ElevenLabs]

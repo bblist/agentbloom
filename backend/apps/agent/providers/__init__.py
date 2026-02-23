@@ -3,7 +3,7 @@ LLM provider abstraction — swap between OpenAI (GPT-4o), Claude, and Gemini.
 
 Primary: GPT-4o — best tool use, structured output, fast reasoning.
 Fallback: Claude 4.6 — creative content, nuanced writing, backup.
-Design: Gemini 3.2 Pro — layout generation, visual/UI tasks.
+Design: Claude 4.6 (default) or Gemini 3.2 Pro — both strong at layout generation, visual/UI tasks.
 """
 
 import logging
@@ -41,7 +41,7 @@ class OpenAIProvider(BaseLLMProvider):
 
 
 class ClaudeProvider(BaseLLMProvider):
-    """Anthropic Claude provider — fallback LLM (Claude 4.6)."""
+    """Anthropic Claude provider — fallback + design LLM (Claude 4.6)."""
 
     async def generate(self, messages, tools=None):
         # TODO: Implement Claude API call via anthropic SDK
@@ -55,7 +55,7 @@ class ClaudeProvider(BaseLLMProvider):
 
 
 class GeminiProvider(BaseLLMProvider):
-    """Google Gemini provider — design tasks (Gemini 3.2 Pro)."""
+    """Google Gemini provider — design-capable, visual/UI tasks (Gemini 3.2 Pro)."""
 
     async def generate(self, messages, tools=None):
         # TODO: Implement Gemini API call via google-generativeai SDK

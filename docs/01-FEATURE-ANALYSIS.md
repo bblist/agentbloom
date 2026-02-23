@@ -11,7 +11,7 @@
 - Per-user persistent memory + knowledge base (vector embeddings)
 - Real-time voice I/O (WebSocket + STT + TTS)
 - Tool library (generate_page, update_design, etc.)
-- Primary LLM: GPT-4o, fallbacks: Claude 4.6, Gemini 3.2 Pro (design)
+- Primary LLM: GPT-4o, fallback: Claude 4.6 (also design), Gemini 3.2 Pro (design option)
 
 ### Gap Analysis & Recommendations
 

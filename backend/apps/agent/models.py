@@ -27,8 +27,8 @@ class AgentConfig(models.Model):
     llm_model = models.CharField(max_length=100, default="gpt-4o")
     fallback_provider = models.CharField(max_length=50, default="claude")
     fallback_model = models.CharField(max_length=100, default="claude-4.6")
-    design_provider = models.CharField(max_length=50, default="gemini")
-    design_model = models.CharField(max_length=100, default="gemini-3.2-pro")
+    design_provider = models.CharField(max_length=50, default="claude")  # claude or gemini
+    design_model = models.CharField(max_length=100, default="claude-4.6")
     temperature = models.FloatField(default=0.7)
     max_tokens = models.IntegerField(default=4096)
     knowledge_base_enabled = models.BooleanField(default=True)
