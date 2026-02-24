@@ -260,9 +260,9 @@ class AdminUserSerializer(drf_serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "email", "first_name", "last_name",
+            "id", "email", "full_name",
             "is_active", "is_staff", "is_superuser",
-            "date_joined", "last_login",
+            "created_at", "last_login",
         ]
         read_only_fields = fields
 
@@ -271,9 +271,9 @@ class AdminUserViewSet(viewsets.ReadOnlyModelViewSet):
     """Admin-only view to list / retrieve platform users."""
     serializer_class = AdminUserSerializer
     permission_classes = [IsAdminUser]
-    queryset = User.objects.all().order_by("-date_joined")
+    queryset = User.objects.all().order_by("-created_at")
     filterset_fields = ["is_active", "is_staff"]
-    search_fields = ["email", "first_name", "last_name"]
+    search_fields = ["email", "full_name"]
 
     @action(detail=True, methods=["post"])
     def impersonate(self, request, pk=None):
