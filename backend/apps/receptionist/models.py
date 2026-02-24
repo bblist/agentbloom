@@ -104,6 +104,7 @@ class ChatSession(models.Model):
     source_url = models.URLField(blank=True, default="")
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
