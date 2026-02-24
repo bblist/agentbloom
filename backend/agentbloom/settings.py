@@ -201,6 +201,7 @@ REST_FRAMEWORK = {
         "user": "1000/hour",
     },
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "agentbloom.exceptions.custom_exception_handler",
 }
 
 # CORS
@@ -337,13 +338,14 @@ UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 # Logging
+import structlog as _structlog
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "json": {
             "()": "structlog.stdlib.ProcessorFormatter",
-            "processor": "structlog.dev.ConsoleRenderer" if DEBUG else "structlog.processors.JSONRenderer",
+            "processor": _structlog.dev.ConsoleRenderer() if DEBUG else _structlog.processors.JSONRenderer(),
         },
     },
     "handlers": {

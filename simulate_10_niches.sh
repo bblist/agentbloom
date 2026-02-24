@@ -21,7 +21,7 @@ check() {
     local id=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('id',''))" 2>/dev/null || echo "")
     if [ -n "$id" ] && [ "$id" != "" ] && [ "$id" != "None" ]; then
         PASS=$((PASS + 1))
-        echo "  ✓ $label (id=$id)"
+        echo "  ✓ $label (id=$id)" >&2
         echo "$id"
     else
         FAIL=$((FAIL + 1))
