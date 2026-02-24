@@ -51,3 +51,4 @@ coverage.xml
 # Misc
 *.bak
 *.tmp
+.github/workflows/ci.yml
