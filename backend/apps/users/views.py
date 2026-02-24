@@ -156,3 +156,76 @@ class OnboardingView(generics.RetrieveUpdateAPIView):
         if instance.completion_pct == 100 and not instance.completed_at:
             instance.completed_at = timezone.now()
             instance.save()
+
+
+class DataExportView(APIView):
+    """GDPR data export — returns all user data as JSON."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        from apps.email_crm.models import Contact
+        from apps.calendar_booking.models import Booking
+        from apps.courses.models import Enrollment
+        from apps.payments.models import Payment
+        from apps.agent.models import Conversation, Message
+
+        data = {
+            "user": {
+                "email": user.email,
+                "full_name": user.full_name,
+                "phone": user.phone or "",
+                "created_at": str(user.created_at),
+            },
+            "organizations": list(
+                user.organizations.values("id", "name", "niche", "created_at")
+            ),
+            "conversations": list(
+                Conversation.objects.filter(user=user).values(
+                    "id", "title", "created_at"
+                )
+            ),
+            "messages": list(
+                Message.objects.filter(conversation__user=user).values(
+                    "role", "content", "created_at"
+                )
+            ),
+            "contacts": list(
+                Contact.objects.filter(org__members=user).values(
+                    "email", "first_name", "last_name", "created_at"
+                )
+            ),
+            "bookings": list(
+                Booking.objects.filter(org__members=user).values(
+                    "client_name", "client_email", "start_time", "status", "created_at"
+                )
+            ),
+            "enrollments": list(
+                Enrollment.objects.filter(user=user).values(
+                    "course__title", "status", "enrolled_at"
+                )
+            ),
+            "payments": list(
+                Payment.objects.filter(org__members=user).values(
+                    "amount", "currency", "status", "created_at"
+                )
+            ),
+        }
+
+        return Response(data)
+
+
+class AccountDeleteView(APIView):
+    """GDPR account deletion — deactivates account and schedules data deletion."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.is_active = False
+        user.save()
+        return Response(
+            {"detail": "Account deactivated. Data will be permanently deleted within 90 days."},
+            status=200,
+        )

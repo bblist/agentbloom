@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "channels",
     "django_celery_beat",
     "storages",
+    "drf_spectacular",
     # AgentBloom apps
     "apps.users",
     "apps.sites",
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     "apps.admin_panel",
     "apps.notifications",
     "apps.webhooks",
+    "apps.receptionist",
 ]
 
 MIDDLEWARE = [
@@ -198,6 +200,7 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
     },
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # CORS
@@ -280,6 +283,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.admin_panel.tasks.check_content_moderation_queue",
         "schedule": 3600,
     },
+    # Receptionist: aggregate daily analytics
+    "receptionist-daily-analytics": {
+        "task": "apps.receptionist.tasks.aggregate_daily_analytics",
+        "schedule": 86400,
+    },
+    # Receptionist: close stale sessions every 10 minutes
+    "receptionist-close-stale": {
+        "task": "apps.receptionist.tasks.close_stale_sessions",
+        "schedule": 600,
+    },
 }
 
 # AWS
@@ -355,4 +368,25 @@ LOGGING = {
             "propagate": False,
         },
     },
+}
+
+# ─── Sentry Error Tracking ─────────────────────────────────────
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN and not DEBUG:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+        send_default_pii=False,
+        environment="production",
+    )
+
+# ─── DRF Spectacular (OpenAPI) ─────────────────────────────────
+SPECTACULAR_SETTINGS = {
+    "TITLE": "AgentBloom API",
+    "DESCRIPTION": "AgentBloom platform API — AI-powered business builder.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
 }

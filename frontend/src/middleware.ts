@@ -11,7 +11,10 @@ const PUBLIC_PATHS = [
     "/auth/register",
     "/auth/forgot-password",
     "/auth/reset-password",
+    "/terms",
+    "/privacy",
     "/api",           // NextJS API routes (if any)
+    "/widget",        // Embeddable chat widget
 ];
 
 function isPublic(pathname: string): boolean {

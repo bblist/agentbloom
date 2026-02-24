@@ -17,6 +17,7 @@ const navItems = [
     { label: "Knowledge Base", href: "/dashboard/kb", seed: "kb-documents" },
     { label: "SEO", href: "/dashboard/seo", seed: "seo-analytics" },
     { label: "Notifications", href: "/dashboard/notifications", seed: "notifications-bell" },
+    { label: "Receptionist", href: "/dashboard/receptionist", seed: "receptionist-chat" },
     { label: "Webhooks", href: "/dashboard/webhooks", seed: "webhooks-api" },
     { label: "Admin Panel", href: "/dashboard/admin", seed: "admin-shield" },
     { label: "Settings", href: "/dashboard/settings", seed: "settings-gear" },

@@ -11,6 +11,8 @@ urlpatterns = [
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path("token/refresh/", views.TokenRefreshView.as_view(), name="token-refresh"),
     path("me/", views.MeView.as_view(), name="me"),
+    path("me/data-export/", views.DataExportView.as_view(), name="data-export"),
+    path("me/delete-account/", views.AccountDeleteView.as_view(), name="delete-account"),
     path("onboarding/", views.OnboardingView.as_view(), name="onboarding"),
     path("", include(router.urls)),
 ]

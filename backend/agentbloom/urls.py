@@ -5,6 +5,7 @@ AgentBloom URL Configuration
 from django.contrib import admin
 from django.urls import include, path
 
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from apps.users.views import HealthCheckView
 
 urlpatterns = [
@@ -12,6 +13,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Health check
     path("api/health/", HealthCheckView.as_view(), name="health-check"),
+    # API Documentation (OpenAPI)
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     # API v1
     path("api/v1/auth/", include("apps.users.urls")),
     path("api/v1/sites/", include("apps.sites.urls")),
@@ -25,6 +29,7 @@ urlpatterns = [
     path("api/v1/admin-panel/", include("apps.admin_panel.urls")),
     path("api/v1/notifications/", include("apps.notifications.urls")),
     path("api/v1/webhooks/", include("apps.webhooks.urls")),
+    path("api/v1/receptionist/", include("apps.receptionist.urls")),
     # Allauth
     path("accounts/", include("allauth.urls")),
 ]

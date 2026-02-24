@@ -67,6 +67,15 @@ export default function HomePage() {
                         </span>
                     ))}
                 </div>
+
+                {/* Footer */}
+                <footer className="mt-20 pb-8 text-sm text-gray-400 dark:text-gray-600 space-x-4">
+                    <Link href="/terms" className="hover:text-gray-600 dark:hover:text-gray-400">Terms of Service</Link>
+                    <span>·</span>
+                    <Link href="/privacy" className="hover:text-gray-600 dark:hover:text-gray-400">Privacy Policy</Link>
+                    <span>·</span>
+                    <span>&copy; {new Date().getFullYear()} NobleBlocks LLC</span>
+                </footer>
             </div>
         </main>
     );

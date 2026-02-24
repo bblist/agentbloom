@@ -253,3 +253,18 @@ export const webhooksAPI = {
     retryDelivery: (endpointId: string, deliveryId: string) =>
         api.post(`/api/v1/webhooks/endpoints/${endpointId}/deliveries/${deliveryId}/retry/`),
 };
+
+export const receptionistAPI = {
+    getConfig: () => api.get("/api/v1/receptionist/config/"),
+    updateConfig: (data: Record<string, unknown>) =>
+        api.patch("/api/v1/receptionist/config/", data),
+    listSessions: (params?: Record<string, string>) =>
+        api.get("/api/v1/receptionist/sessions/", { params }),
+    getSession: (id: string) => api.get(`/api/v1/receptionist/sessions/${id}/`),
+    closeSession: (id: string) =>
+        api.post(`/api/v1/receptionist/sessions/${id}/close/`),
+    transferSession: (id: string) =>
+        api.post(`/api/v1/receptionist/sessions/${id}/transfer/`),
+    getAnalytics: (params?: Record<string, string>) =>
+        api.get("/api/v1/receptionist/analytics/", { params }),
+};
