@@ -20,4 +20,5 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "agentbloom.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# Use daphne ASGI server for HTTP + WebSocket support
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "agentbloom.asgi:application"]

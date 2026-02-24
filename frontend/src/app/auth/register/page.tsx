@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { authAPI } from "@/lib/api";
 import { dicebear } from "@/lib/dicebear";
 
 export default function RegisterPage() {
@@ -19,21 +20,17 @@ export default function RegisterPage() {
         setError("");
 
         try {
-            const res = await fetch("/api/v1/users/register/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, full_name: fullName, password }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.email?.[0] || data.detail || "Registration failed");
-            }
-
-            // Auto-login after registration
-            router.push("/auth/login?registered=true");
+            const { data } = await authAPI.register({ email, full_name: fullName, password });
+            // Auto-login: store token and redirect
+            document.cookie = `auth_token=${data.token}; path=/; max-age=2592000`;
+            router.push("/dashboard");
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Registration failed");
+            const message =
+                (err as { response?: { data?: { email?: string[]; detail?: string } } })
+                    .response?.data?.email?.[0] ||
+                (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ||
+                "Registration failed";
+            setError(message);
         } finally {
             setLoading(false);
         }

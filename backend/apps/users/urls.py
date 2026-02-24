@@ -7,6 +7,9 @@ router.register(r"orgs", views.OrganizationViewSet, basename="organization")
 
 urlpatterns = [
     path("register/", views.RegisterView.as_view(), name="register"),
+    path("login/", views.LoginView.as_view(), name="login"),
+    path("logout/", views.LogoutView.as_view(), name="logout"),
+    path("token/refresh/", views.TokenRefreshView.as_view(), name="token-refresh"),
     path("me/", views.MeView.as_view(), name="me"),
     path("onboarding/", views.OnboardingView.as_view(), name="onboarding"),
     path("", include(router.urls)),

@@ -1,4 +1,7 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
+
 from .models import User, Organization, OrgMember, OnboardingProgress
 
 
@@ -12,6 +15,27 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "email", "email_verified", "created_at"]
 
 
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email", "").lower().strip()
+        password = attrs.get("password")
+        user = authenticate(request=self.context.get("request"), email=email, password=password)
+        if not user:
+            raise serializers.ValidationError("Invalid email or password.")
+        if not user.is_active:
+            raise serializers.ValidationError("Account is disabled.")
+        attrs["user"] = user
+        return attrs
+
+    def create(self, validated_data):
+        user = validated_data["user"]
+        token, _ = Token.objects.get_or_create(user=user)
+        return {"user": user, "token": token.key}
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
 
@@ -20,7 +44,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ["email", "full_name", "password"]
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data)
+        Token.objects.create(user=user)
+        return user
 
 
 class OrganizationSerializer(serializers.ModelSerializer):

@@ -42,24 +42,26 @@ export default api;
 // ─── API helpers ───
 export const authAPI = {
     register: (data: { email: string; full_name: string; password: string }) =>
-        api.post("/api/v1/users/register/", data),
+        api.post("/api/v1/auth/register/", data),
     login: (data: { email: string; password: string }) =>
         api.post("/api/v1/auth/login/", data),
-    me: () => api.get("/api/v1/users/me/"),
+    logout: () => api.post("/api/v1/auth/logout/"),
+    refreshToken: () => api.post("/api/v1/auth/token/refresh/"),
+    me: () => api.get("/api/v1/auth/me/"),
     updateMe: (data: Record<string, unknown>) =>
-        api.patch("/api/v1/users/me/", data),
+        api.patch("/api/v1/auth/me/", data),
 };
 
 export const orgAPI = {
-    list: () => api.get("/api/v1/users/orgs/"),
+    list: () => api.get("/api/v1/auth/orgs/"),
     create: (data: { name: string; niche?: string; description?: string }) =>
-        api.post("/api/v1/users/orgs/", data),
-    get: (id: string) => api.get(`/api/v1/users/orgs/${id}/`),
+        api.post("/api/v1/auth/orgs/", data),
+    get: (id: string) => api.get(`/api/v1/auth/orgs/${id}/`),
     update: (id: string, data: Record<string, unknown>) =>
-        api.patch(`/api/v1/users/orgs/${id}/`, data),
-    members: (id: string) => api.get(`/api/v1/users/orgs/${id}/members/`),
+        api.patch(`/api/v1/auth/orgs/${id}/`, data),
+    members: (id: string) => api.get(`/api/v1/auth/orgs/${id}/members/`),
     invite: (id: string, data: { email: string; role?: string }) =>
-        api.post(`/api/v1/users/orgs/${id}/invite/`, data),
+        api.post(`/api/v1/auth/orgs/${id}/invite/`, data),
 };
 
 export const agentAPI = {
@@ -111,7 +113,7 @@ export const crmAPI = {
     deals: () => api.get("/api/v1/crm/deals/"),
     createDeal: (data: Record<string, unknown>) =>
         api.post("/api/v1/crm/deals/", data),
-    templates: () => api.get("/api/v1/crm/templates/"),
+    templates: () => api.get("/api/v1/crm/email-templates/"),
 };
 
 export const coursesAPI = {
@@ -182,4 +184,72 @@ export const seoAPI = {
         api.post(`/api/v1/seo/settings/generate_sitemap/`, { site_id: siteId }),
     pageSpeed: () => api.get("/api/v1/seo/page-speed/"),
     linkSuggestions: () => api.get("/api/v1/seo/link-suggestions/"),
+};
+
+export const kbAPI = {
+    documents: () => api.get("/api/v1/kb/documents/"),
+    document: (id: string) => api.get(`/api/v1/kb/documents/${id}/`),
+    uploadDocument: (file: File, title: string) => {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("title", title);
+        return api.post("/api/v1/kb/documents/", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    },
+    deleteDocument: (id: string) => api.delete(`/api/v1/kb/documents/${id}/`),
+    reprocessDocument: (id: string) =>
+        api.post(`/api/v1/kb/documents/${id}/reprocess/`),
+    sources: () => api.get("/api/v1/kb/sources/"),
+    createSource: (data: Record<string, unknown>) =>
+        api.post("/api/v1/kb/sources/", data),
+    deleteSource: (id: string) => api.delete(`/api/v1/kb/sources/${id}/`),
+    search: (query: string) =>
+        api.get(`/api/v1/kb/search/?q=${encodeURIComponent(query)}`),
+};
+
+export const adminAPI = {
+    featureFlags: () => api.get("/api/v1/admin-panel/feature-flags/"),
+    updateFeatureFlag: (id: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/admin-panel/feature-flags/${id}/`, data),
+    supportTickets: () => api.get("/api/v1/admin-panel/tickets/"),
+    supportTicket: (id: string) =>
+        api.get(`/api/v1/admin-panel/tickets/${id}/`),
+    updateTicket: (id: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/admin-panel/tickets/${id}/`, data),
+    assignTicket: (id: string, data: { assignee_id: string }) =>
+        api.post(`/api/v1/admin-panel/tickets/${id}/assign/`, data),
+    moderationQueue: () => api.get("/api/v1/admin-panel/moderation/"),
+    moderateContent: (id: string, data: { action: string }) =>
+        api.post(`/api/v1/admin-panel/moderation/${id}/moderate/`, data),
+    systemHealth: () => api.get("/api/v1/admin-panel/system-health/"),
+    auditLog: () => api.get("/api/v1/admin-panel/audit-log/"),
+    revenue: () => api.get("/api/v1/admin-panel/revenue/"),
+    users: () => api.get("/api/v1/admin-panel/users/"),
+    impersonate: (userId: string) =>
+        api.post(`/api/v1/admin-panel/users/${userId}/impersonate/`),
+};
+
+export const notificationsAPI = {
+    list: () => api.get("/api/v1/notifications/"),
+    markRead: (id: string) =>
+        api.post(`/api/v1/notifications/${id}/read/`),
+    markAllRead: () => api.post("/api/v1/notifications/read-all/"),
+    preferences: () => api.get("/api/v1/notifications/preferences/"),
+    updatePreferences: (data: Record<string, unknown>) =>
+        api.patch("/api/v1/notifications/preferences/", data),
+};
+
+export const webhooksAPI = {
+    list: () => api.get("/api/v1/webhooks/endpoints/"),
+    create: (data: Record<string, unknown>) =>
+        api.post("/api/v1/webhooks/endpoints/", data),
+    get: (id: string) => api.get(`/api/v1/webhooks/endpoints/${id}/`),
+    update: (id: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/webhooks/endpoints/${id}/`, data),
+    delete: (id: string) => api.delete(`/api/v1/webhooks/endpoints/${id}/`),
+    deliveries: (id: string) =>
+        api.get(`/api/v1/webhooks/endpoints/${id}/deliveries/`),
+    retryDelivery: (endpointId: string, deliveryId: string) =>
+        api.post(`/api/v1/webhooks/endpoints/${endpointId}/deliveries/${deliveryId}/retry/`),
 };

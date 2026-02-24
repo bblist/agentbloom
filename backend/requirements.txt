@@ -26,6 +26,9 @@ django-celery-beat>=2.6
 boto3>=1.35
 django-ses>=4.1
 
+# Payments
+stripe>=10.0
+
 # AI/ML
 google-generativeai>=0.8
 anthropic>=0.32

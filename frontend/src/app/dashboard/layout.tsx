@@ -12,7 +12,11 @@ const navItems = [
     { label: "Courses", href: "/dashboard/courses", seed: "courses-education" },
     { label: "Bookings", href: "/dashboard/bookings", seed: "calendar-bookings" },
     { label: "Payments", href: "/dashboard/payments", seed: "payments-stripe" },
+    { label: "Knowledge Base", href: "/dashboard/kb", seed: "kb-documents" },
     { label: "SEO", href: "/dashboard/seo", seed: "seo-analytics" },
+    { label: "Notifications", href: "/dashboard/notifications", seed: "notifications-bell" },
+    { label: "Webhooks", href: "/dashboard/webhooks", seed: "webhooks-api" },
+    { label: "Admin Panel", href: "/dashboard/admin", seed: "admin-shield" },
     { label: "Settings", href: "/dashboard/settings", seed: "settings-gear" },
 ];
 

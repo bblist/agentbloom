@@ -1,11 +1,13 @@
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import User, Organization, OrgMember, OnboardingProgress
 from .serializers import (
+    LoginSerializer,
     UserSerializer,
     UserRegistrationSerializer,
     OrganizationSerializer,
@@ -37,10 +39,50 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        token = Token.objects.get(user=user)
         return Response(
-            UserSerializer(user).data,
+            {"user": UserSerializer(user).data, "token": token.key},
             status=status.HTTP_201_CREATED,
         )
+
+
+class LoginView(APIView):
+    """Email + password login → returns Bearer token."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+        return Response(
+            {"user": UserSerializer(result["user"]).data, "token": result["token"]},
+            status=status.HTTP_200_OK,
+        )
+
+
+class LogoutView(APIView):
+    """Delete current token to log out."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            request.auth.delete()
+        except Exception:
+            pass
+        return Response({"detail": "Logged out."}, status=status.HTTP_200_OK)
+
+
+class TokenRefreshView(APIView):
+    """Rotate token: delete old, issue new."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        request.auth.delete()
+        token = Token.objects.create(user=request.user)
+        return Response({"token": token.key}, status=status.HTTP_200_OK)
 
 
 class MeView(generics.RetrieveUpdateAPIView):

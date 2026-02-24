@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
                 protocol: "https",
                 hostname: "images.pexels.com",
             },
+            {
+                protocol: "https",
+                hostname: "api.dicebear.com",
+            },
         ],
     },
     async rewrites() {

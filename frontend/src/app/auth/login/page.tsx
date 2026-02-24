@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { authAPI } from "@/lib/api";
 import { dicebear } from "@/lib/dicebear";
 
 export default function LoginPage() {
@@ -18,23 +19,16 @@ export default function LoginPage() {
         setError("");
 
         try {
-            // TODO: Wire up to authAPI.login()
-            const res = await fetch("/api/v1/auth/login/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || "Invalid credentials");
-            }
-
-            const data = await res.json();
+            const { data } = await authAPI.login({ email, password });
             document.cookie = `auth_token=${data.token}; path=/; max-age=2592000`;
             router.push("/dashboard");
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Login failed");
+            const message =
+                (err as { response?: { data?: { non_field_errors?: string[]; detail?: string } } })
+                    .response?.data?.non_field_errors?.[0] ||
+                (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ||
+                "Login failed";
+            setError(message);
         } finally {
             setLoading(false);
         }
