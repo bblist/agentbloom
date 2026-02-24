@@ -46,6 +46,12 @@ class PageViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Page.objects.filter(site__org=self.request.org, site_id=self.kwargs.get("site_pk"))
 
+    def perform_create(self, serializer):
+        site_pk = self.kwargs.get("site_pk")
+        site = Site.objects.get(pk=site_pk, org=self.request.org)
+        path = serializer.validated_data.get("path") or "/" + serializer.validated_data.get("slug", "")
+        serializer.save(site=site, path=path)
+
     @action(detail=True, methods=["get"])
     def versions(self, request, site_pk=None, pk=None):
         page = self.get_object()
