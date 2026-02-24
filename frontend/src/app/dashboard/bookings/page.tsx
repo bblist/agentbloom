@@ -252,7 +252,7 @@ export default function BookingsPage() {
                                     <p className="text-gray-500">Bookings will appear here when clients schedule appointments.</p>
                                 </div>
                             ) : (
-                                <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-gray-50 dark:bg-gray-800">
                                             <tr>

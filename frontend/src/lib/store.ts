@@ -74,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
                     // Fetch org if user has one
                     if (data.user?.default_org_id) {
                         const orgRes = await api.get(
-                            `/api/v1/orgs/${data.user.default_org_id}/`
+                            `/api/v1/auth/orgs/${data.user.default_org_id}/`
                         );
                         const org = orgRes.data;
                         Cookies.set("org_id", org.id, {
@@ -126,12 +126,12 @@ export const useAuthStore = create<AuthState>()(
                 }
                 set({ isLoading: true, token, isAuthenticated: true });
                 try {
-                    const { data } = await api.get("/api/v1/auth/user/");
+                    const { data } = await api.get("/api/v1/auth/me/");
                     set({ user: data });
                     const orgId = Cookies.get("org_id");
                     if (orgId) {
                         const orgRes = await api.get(
-                            `/api/v1/orgs/${orgId}/`
+                            `/api/v1/auth/orgs/${orgId}/`
                         );
                         set({ org: orgRes.data });
                     }

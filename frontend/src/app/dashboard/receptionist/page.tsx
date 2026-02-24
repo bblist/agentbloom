@@ -57,9 +57,9 @@ export default function ReceptionistPage() {
     setLoading(true);
     try {
       const [cfgRes, sessRes, analyticsRes] = await Promise.all([
-        api.get("/receptionist/config/"),
-        api.get("/receptionist/sessions/"),
-        api.get("/receptionist/analytics/"),
+        api.get("/api/v1/receptionist/config/"),
+        api.get("/api/v1/receptionist/sessions/"),
+        api.get("/api/v1/receptionist/analytics/"),
       ]);
       setConfig(cfgRes.data);
       setSessions(Array.isArray(sessRes.data) ? sessRes.data : sessRes.data.results || []);
@@ -75,7 +75,7 @@ export default function ReceptionistPage() {
     if (!config) return;
     setSaving(true);
     try {
-      const res = await api.patch("/receptionist/config/", {
+      const res = await api.patch("/api/v1/receptionist/config/", {
         persona_name: config.persona_name,
         greeting_message: config.greeting_message,
         primary_color: config.primary_color,
@@ -100,7 +100,7 @@ export default function ReceptionistPage() {
 
   async function closeSession(sessionId: string) {
     try {
-      await api.post(`/receptionist/sessions/${sessionId}/close/`);
+      await api.post(`/api/v1/receptionist/sessions/${sessionId}/close/`);
       toast.success("Session closed");
       setSessions((prev) =>
         prev.map((s) => (s.id === sessionId ? { ...s, status: "closed" } : s))
@@ -188,7 +188,7 @@ export default function ReceptionistPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white">
               Persona
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Name
@@ -255,7 +255,7 @@ export default function ReceptionistPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white">
               Appearance
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Primary Color
@@ -405,7 +405,7 @@ export default function ReceptionistPage() {
 
       {/* Sessions Tab */}
       {tab === "sessions" && (
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-x-auto">
           {sessions.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               <p className="text-lg font-medium">No chat sessions yet</p>
@@ -496,7 +496,7 @@ export default function ReceptionistPage() {
           {/* Summary cards */}
           {analytics.length > 0 ? (
             <>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
                   {
                     label: "Total Sessions",
@@ -530,7 +530,7 @@ export default function ReceptionistPage() {
               </div>
 
               {/* Daily table */}
-              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>

@@ -173,21 +173,21 @@ export default function SEOPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
                         <p className="text-xs text-gray-500 mb-1">SEO Score</p>
-                        <p className={`text-4xl font-bold ${scoreColor(latestAudit.overall_score)}`}>
+                        <p className={`text-3xl sm:text-4xl font-bold ${scoreColor(latestAudit.overall_score)}`}>
                             {latestAudit.overall_score}
                         </p>
                     </div>
                     <div className="p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
                         <p className="text-xs text-gray-500 mb-1">Pages Analyzed</p>
-                        <p className="text-3xl font-bold">{latestAudit.pages_analyzed}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{latestAudit.pages_analyzed}</p>
                     </div>
                     <div className="p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
                         <p className="text-xs text-gray-500 mb-1">Issues Found</p>
-                        <p className="text-3xl font-bold text-red-600">{latestAudit.issues_found}</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-red-600">{latestAudit.issues_found}</p>
                     </div>
                     <div className="p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
                         <p className="text-xs text-gray-500 mb-1">Tracked Keywords</p>
-                        <p className="text-3xl font-bold">{keywords.length}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{keywords.length}</p>
                     </div>
                 </div>
             )}

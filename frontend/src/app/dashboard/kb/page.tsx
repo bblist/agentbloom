@@ -128,10 +128,10 @@ export default function KBPage() {
     };
 
     return (
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold">Knowledge Base</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold">Knowledge Base</h1>
                     <p className="mt-1 text-gray-500">
                         Train your AI agent with documents, URLs, and data sources
                     </p>
@@ -179,7 +179,7 @@ export default function KBPage() {
                             <span className="text-sm text-gray-500">{stat.label}</span>
                             <img src={shapeIcon(stat.seed)} alt="" className="w-10 h-10 rounded-lg" />
                         </div>
-                        <span className="text-3xl font-bold">{stat.value}</span>
+                        <span className="text-2xl sm:text-3xl font-bold">{stat.value}</span>
                     </div>
                 ))}
             </div>

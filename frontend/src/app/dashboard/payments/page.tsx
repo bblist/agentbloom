@@ -217,7 +217,7 @@ export default function PaymentsPage() {
 
                     {/* Payments Table */}
                     {tab === "payments" && (
-                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
                             {payments.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
                                     <img src={emptyStateAvatar("no-payments")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
@@ -254,7 +254,7 @@ export default function PaymentsPage() {
 
                     {/* Subscriptions */}
                     {tab === "subscriptions" && (
-                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
                             {subscriptions.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
                                     <img src={emptyStateAvatar("no-subscriptions")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
@@ -293,7 +293,7 @@ export default function PaymentsPage() {
 
                     {/* Invoices */}
                     {tab === "invoices" && (
-                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
                             {invoices.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
                                     <img src={emptyStateAvatar("no-invoices")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />

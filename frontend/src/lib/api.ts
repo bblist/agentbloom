@@ -50,6 +50,14 @@ export const authAPI = {
     me: () => api.get("/api/v1/auth/me/"),
     updateMe: (data: Record<string, unknown>) =>
         api.patch("/api/v1/auth/me/", data),
+    updateProfile: (data: Record<string, unknown>) =>
+        api.patch("/api/v1/auth/me/", data),
+    changePassword: (data: { current_password: string; new_password: string }) =>
+        api.post("/api/v1/auth/me/", { ...data, action: "change_password" }),
+    deleteAccount: () =>
+        api.post("/api/v1/auth/me/delete-account/"),
+    dataExport: () =>
+        api.get("/api/v1/auth/me/data-export/"),
 };
 
 export const orgAPI = {
@@ -81,9 +89,25 @@ export const sitesAPI = {
     get: (id: string) => api.get(`/api/v1/sites/sites/${id}/`),
     update: (id: string, data: Record<string, unknown>) =>
         api.patch(`/api/v1/sites/sites/${id}/`, data),
+    delete: (id: string) => api.delete(`/api/v1/sites/sites/${id}/`),
     publish: (id: string) => api.post(`/api/v1/sites/sites/${id}/publish/`),
-    pages: (siteId: string) => api.get(`/api/v1/sites/sites/${siteId}/pages/`),
+    preview: (id: string) => api.get(`/api/v1/sites/sites/${id}/preview/`),
+    pages: (siteId: string) =>
+        api.get(`/api/v1/sites/sites/${siteId}/pages/`),
+    createPage: (siteId: string, data: Record<string, unknown>) =>
+        api.post(`/api/v1/sites/sites/${siteId}/pages/`, data),
+    getPage: (siteId: string, pageId: string) =>
+        api.get(`/api/v1/sites/sites/${siteId}/pages/${pageId}/`),
+    updatePage: (siteId: string, pageId: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/sites/sites/${siteId}/pages/${pageId}/`, data),
+    deletePage: (siteId: string, pageId: string) =>
+        api.delete(`/api/v1/sites/sites/${siteId}/pages/${pageId}/`),
+    publishPage: (siteId: string, pageId: string) =>
+        api.post(`/api/v1/sites/sites/${siteId}/pages/${pageId}/publish/`),
     templates: () => api.get("/api/v1/sites/templates/"),
+    components: () => api.get("/api/v1/sites/components/"),
+    media: () => api.get("/api/v1/sites/media/"),
+    forms: () => api.get("/api/v1/sites/forms/"),
 };
 
 export const crmAPI = {

@@ -130,10 +130,10 @@ export default function WebhooksPage() {
     }
 
     return (
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold">Webhooks</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold">Webhooks</h1>
                     <p className="mt-1 text-gray-500">
                         Connect external services with real-time event notifications
                     </p>
@@ -169,7 +169,7 @@ export default function WebhooksPage() {
                             <span className="text-sm text-gray-500">{stat.label}</span>
                             <img src={shapeIcon(stat.seed)} alt="" className="w-10 h-10 rounded-lg" />
                         </div>
-                        <span className="text-3xl font-bold">{stat.value}</span>
+                        <span className="text-2xl sm:text-3xl font-bold">{stat.value}</span>
                     </div>
                 ))}
             </div>
@@ -354,7 +354,7 @@ export default function WebhooksPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-2">Events</label>
-                                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                                     {AVAILABLE_EVENTS.map((event) => (
                                         <label
                                             key={event}

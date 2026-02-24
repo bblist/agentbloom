@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { sitesAPI, crmAPI, bookingsAPI, paymentsAPI } from "@/lib/api";
+import { sitesAPI, crmAPI, bookingsAPI, paymentsAPI, authAPI } from "@/lib/api";
 import { shapeIcon, agentAvatar, thumbnailAvatar, emptyStateAvatar } from "@/lib/dicebear";
+import { useAuthStore } from "@/lib/store";
 
 interface Stats {
     sites: number;
@@ -12,8 +13,17 @@ interface Stats {
     revenue: number;
 }
 
+interface ChecklistItem {
+    key: string;
+    text: string;
+    href: string;
+    done: boolean;
+}
+
 export default function DashboardPage() {
     const [stats, setStats] = useState<Stats>({ sites: 0, contacts: 0, bookings: 0, revenue: 0 });
+    const { user, org } = useAuthStore();
+    const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
 
     useEffect(() => {
         async function loadStats() {
@@ -31,30 +41,77 @@ export default function DashboardPage() {
                 const rev = paymentList
                     .filter((p: { status: string }) => p.status === "completed")
                     .reduce((sum: number, p: { amount: string }) => sum + parseFloat(p.amount || "0"), 0);
-                setStats({
+
+                const newStats = {
                     sites: siteList.length,
                     contacts: contactList.length,
                     bookings: bookingList.length,
                     revenue: rev,
-                });
+                };
+                setStats(newStats);
+
+                // Build dynamic checklist based on actual data
+                setChecklist([
+                    {
+                        key: "profile",
+                        text: "Set up your business info",
+                        href: "/dashboard/settings",
+                        done: !!(user?.first_name && org?.name),
+                    },
+                    {
+                        key: "site",
+                        text: "Create your first website",
+                        href: "/dashboard/sites",
+                        done: siteList.length > 0,
+                    },
+                    {
+                        key: "contacts",
+                        text: "Import or add contacts",
+                        href: "/dashboard/crm",
+                        done: contactList.length > 0,
+                    },
+                    {
+                        key: "agent",
+                        text: "Chat with your AI agent",
+                        href: "/dashboard/agent",
+                        done: false, // Will be true once agent conversation count tracked
+                    },
+                    {
+                        key: "booking",
+                        text: "Set up a booking calendar",
+                        href: "/dashboard/bookings",
+                        done: bookingList.length > 0,
+                    },
+                    {
+                        key: "payment",
+                        text: "Connect payments",
+                        href: "/dashboard/payments",
+                        done: paymentList.length > 0,
+                    },
+                ]);
             } catch (e) {
                 console.error("Failed to load dashboard stats", e);
             }
         }
         loadStats();
-    }, []);
+    }, [user, org]);
+
+    const completedCount = checklist.filter((c) => c.done).length;
+
     return (
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold">Welcome to AgentBloom</h1>
-                <p className="mt-2 text-gray-500">
+            <div className="mb-6 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                    {user?.first_name ? `Welcome back, ${user.first_name}` : "Welcome to AgentBloom"}
+                </h1>
+                <p className="mt-1 sm:mt-2 text-gray-500">
                     Your AI-powered business command center
                 </p>
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
                 {[
                     { label: "Sites", value: stats.sites.toString(), seed: "stat-sites-globe" },
                     { label: "Contacts", value: stats.contacts.toString(), seed: "stat-contacts-people" },
@@ -63,21 +120,21 @@ export default function DashboardPage() {
                 ].map((stat) => (
                     <div
                         key={stat.label}
-                        className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
+                        className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800"
                     >
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-500">{stat.label}</span>
-                            <img src={shapeIcon(stat.seed)} alt="" className="w-10 h-10 rounded-lg" />
+                            <span className="text-xs sm:text-sm text-gray-500">{stat.label}</span>
+                            <img src={shapeIcon(stat.seed)} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg" />
                         </div>
-                        <span className="text-3xl font-bold">{stat.value}</span>
+                        <span className="text-2xl sm:text-3xl font-bold">{stat.value}</span>
                     </div>
                 ))}
             </div>
 
             {/* Quick Actions */}
-            <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mb-6 sm:mb-8">
+                <h2 className="text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <Link href="/dashboard/agent" className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-left hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors">
                         <img src={agentAvatar("quick-action-agent")} alt="" className="w-10 h-10 rounded-xl mb-2" />
                         <span className="font-semibold text-blue-700 dark:text-blue-400">
@@ -109,29 +166,53 @@ export default function DashboardPage() {
             </div>
 
             {/* Getting Started Checklist */}
-            <div className="p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
-                <h2 className="text-lg font-semibold mb-4">Getting Started</h2>
+            <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Getting Started</h2>
+                    {checklist.length > 0 && (
+                        <span className="text-sm text-gray-500">
+                            {completedCount}/{checklist.length} completed
+                        </span>
+                    )}
+                </div>
+                {/* Progress bar */}
+                {checklist.length > 0 && (
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 mb-4">
+                        <div
+                            className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${(completedCount / checklist.length) * 100}%` }}
+                        />
+                    </div>
+                )}
                 <ul className="space-y-3">
-                    {[
-                        { text: "Set up your business info", done: false },
-                        { text: "Choose branding & colors", done: false },
-                        { text: "Pick a website template", done: false },
-                        { text: "Connect a custom domain", done: false },
-                        { text: "Chat with your AI agent", done: false },
-                        { text: "Take the platform tour", done: false },
-                    ].map((step, i) => (
-                        <li key={i} className="flex items-center gap-3">
-                            <span
-                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step.done
-                                        ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-600"
-                                        : "bg-gray-100 dark:bg-gray-800 text-gray-400"
-                                    }`}
+                    {checklist.map((step, i) => (
+                        <li key={step.key}>
+                            <Link
+                                href={step.href}
+                                className="flex items-center gap-3 group hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded-lg transition-colors"
                             >
-                                {step.done ? "✓" : i + 1}
-                            </span>
-                            <span className={step.done ? "line-through text-gray-400" : ""}>
-                                {step.text}
-                            </span>
+                                <span
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${
+                                        step.done
+                                            ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-600"
+                                            : "bg-gray-100 dark:bg-gray-800 text-gray-400"
+                                    }`}
+                                >
+                                    {step.done ? "✓" : i + 1}
+                                </span>
+                                <span
+                                    className={`text-sm sm:text-base ${
+                                        step.done ? "line-through text-gray-400" : "group-hover:text-blue-600"
+                                    }`}
+                                >
+                                    {step.text}
+                                </span>
+                                {!step.done && (
+                                    <span className="ml-auto text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Go →
+                                    </span>
+                                )}
+                            </Link>
                         </li>
                     ))}
                 </ul>

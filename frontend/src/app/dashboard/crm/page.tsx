@@ -202,7 +202,7 @@ export default function CRMPage() {
 
                     {/* Contacts Table */}
                     {tab === "contacts" && (
-                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
                             {contacts.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
                                     <img src={emptyStateAvatar("no-contacts")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
@@ -316,7 +316,7 @@ export default function CRMPage() {
                                     <p>No deals yet. Deals will appear here as they&apos;re created.</p>
                                 </div>
                             ) : (
-                                <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-gray-50 dark:bg-gray-800">
                                             <tr>

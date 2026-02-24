@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { sitesAPI } from "@/lib/api";
 import { thumbnailAvatar, emptyStateAvatar } from "@/lib/dicebear";
+import { toast } from "sonner";
 
 interface Site {
     id: string;
@@ -19,20 +20,41 @@ interface Site {
 export default function SitesPage() {
     const [sites, setSites] = useState<Site[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showCreate, setShowCreate] = useState(false);
+    const [newSite, setNewSite] = useState({ name: "", slug: "" });
+    const [creating, setCreating] = useState(false);
 
-    useEffect(() => {
-        async function load() {
-            try {
-                const { data } = await sitesAPI.list();
-                setSites(data.results || data || []);
-            } catch {
-                /* Not logged in */
-            } finally {
-                setLoading(false);
-            }
+    async function load() {
+        try {
+            const { data } = await sitesAPI.list();
+            setSites(data.results || data || []);
+        } catch {
+            /* Not logged in */
+        } finally {
+            setLoading(false);
         }
-        load();
-    }, []);
+    }
+
+    useEffect(() => { load(); }, []);
+
+    async function createSite() {
+        if (!newSite.name) return;
+        setCreating(true);
+        try {
+            await sitesAPI.create({
+                name: newSite.name,
+                slug: newSite.slug || newSite.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+            });
+            toast.success("Site created!");
+            setShowCreate(false);
+            setNewSite({ name: "", slug: "" });
+            load();
+        } catch {
+            toast.error("Failed to create site");
+        } finally {
+            setCreating(false);
+        }
+    }
 
     const statusBadge = (status: string) => {
         const colors: Record<string, string> = {
@@ -48,23 +70,69 @@ export default function SitesPage() {
     };
 
     return (
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
                         <img src={thumbnailAvatar("websites-header")} alt="" className="w-9 h-9 rounded-lg" />
                         Websites
                     </h1>
                     <p className="mt-1 text-gray-500">Manage your published sites and pages</p>
                 </div>
-                <Link
-                    href="/dashboard/agent"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
-                >
-                    + Ask Agent to Build
-                </Link>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowCreate(!showCreate)}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors text-sm"
+                    >
+                        + Create Site
+                    </button>
+                    <Link
+                        href="/dashboard/agent"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                    >
+                        Ask Agent to Build
+                    </Link>
+                </div>
             </div>
+
+            {/* Create Site Form */}
+            {showCreate && (
+                <div className="mb-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+                    <h3 className="font-semibold mb-3">Create New Site</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input
+                            type="text"
+                            value={newSite.name}
+                            onChange={(e) => setNewSite({ ...newSite, name: e.target.value })}
+                            placeholder="Site name (e.g., My Fitness Studio)"
+                            className="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                        />
+                        <input
+                            type="text"
+                            value={newSite.slug}
+                            onChange={(e) => setNewSite({ ...newSite, slug: e.target.value })}
+                            placeholder="url-slug (auto-generated)"
+                            className="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                        />
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                        <button
+                            onClick={createSite}
+                            disabled={creating || !newSite.name}
+                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                            {creating ? "Creating..." : "Create"}
+                        </button>
+                        <button
+                            onClick={() => setShowCreate(false)}
+                            className="px-4 py-2 text-gray-600 text-sm"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Sites Grid */}
             {loading ? (
