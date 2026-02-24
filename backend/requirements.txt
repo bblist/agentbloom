@@ -61,3 +61,4 @@ ruff>=0.5
 mypy>=1.11
 django-debug-toolbar>=4.4
 factory-boy>=3.3
+PyJWT>=2.8.0
