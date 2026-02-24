@@ -15,6 +15,7 @@ const PUBLIC_PATHS = [
     "/privacy",
     "/api",           // NextJS API routes (if any)
     "/widget",        // Embeddable chat widget
+    "/examples",      // Example showcase pages
 ];
 
 function isPublic(pathname: string): boolean {
