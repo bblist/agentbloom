@@ -1,5 +1,6 @@
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 
 from .models import (
@@ -23,9 +24,17 @@ class ContactViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(org=self.request.org)
 
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["post"], parser_classes=[MultiPartParser])
     def import_csv(self, request):
-        # TODO: Parse CSV and create contacts
+        """Import contacts from a CSV file."""
+        csv_file = request.FILES.get("file")
+        if not csv_file:
+            return Response({"error": "No file provided"}, status=400)
+        if not csv_file.name.endswith(".csv"):
+            return Response({"error": "File must be a CSV"}, status=400)
+        content = csv_file.read().decode("utf-8")
+        from .tasks import import_contacts_csv
+        import_contacts_csv.delay(str(self.request.org.id), content)
         return Response({"status": "import_started"})
 
     @action(detail=True, methods=["post"])
@@ -75,10 +84,11 @@ class CampaignViewSet(viewsets.ModelViewSet):
         campaign = self.get_object()
         if campaign.status != "draft":
             return Response({"error": "Campaign must be in draft status"}, status=400)
-        campaign.status = "scheduled"
+        campaign.status = "sending"
         campaign.save()
-        # TODO: Celery task to send emails via SES
-        return Response({"status": "sending_scheduled"})
+        from .tasks import send_campaign_emails
+        send_campaign_emails.delay(str(campaign.id))
+        return Response({"status": "sending"})
 
 
 class AutomationViewSet(viewsets.ModelViewSet):

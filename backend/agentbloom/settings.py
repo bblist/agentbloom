@@ -204,6 +204,63 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    # Agent: cleanup old conversations weekly
+    "agent-cleanup-conversations": {
+        "task": "apps.agent.tasks.cleanup_old_conversations",
+        "schedule": 604800,  # weekly
+    },
+    # Agent: run scheduled tasks every 5 minutes
+    "agent-run-scheduled-tasks": {
+        "task": "apps.agent.tasks.run_scheduled_tasks",
+        "schedule": 300,
+    },
+    # Notifications: cleanup old read notifications daily
+    "notifications-cleanup": {
+        "task": "apps.notifications.tasks.cleanup_old_notifications",
+        "schedule": 86400,  # daily
+    },
+    # Calendar: send booking reminders every 15 minutes
+    "calendar-send-reminders": {
+        "task": "apps.calendar_booking.tasks.send_booking_reminders",
+        "schedule": 900,
+    },
+    # KB: run scheduled URL scrapes hourly
+    "kb-scrape-urls": {
+        "task": "apps.kb.tasks.scrape_scheduled_urls",
+        "schedule": 3600,
+    },
+    # SEO: track keyword rankings daily
+    "seo-track-keywords": {
+        "task": "apps.seo.tasks.track_keyword_rankings",
+        "schedule": 86400,
+    },
+    # Admin: aggregate platform metrics daily
+    "admin-platform-metrics": {
+        "task": "apps.admin_panel.tasks.aggregate_platform_metrics",
+        "schedule": 86400,
+    },
+    # Admin: aggregate revenue analytics daily
+    "admin-revenue-analytics": {
+        "task": "apps.admin_panel.tasks.aggregate_revenue_analytics",
+        "schedule": 86400,
+    },
+    # Admin: system health check every 5 minutes
+    "admin-health-check": {
+        "task": "apps.admin_panel.tasks.run_system_health_check",
+        "schedule": 300,
+    },
+    # Admin: expire impersonation sessions every minute
+    "admin-expire-impersonation": {
+        "task": "apps.admin_panel.tasks.expire_impersonation_sessions",
+        "schedule": 60,
+    },
+    # Admin: check moderation queue every hour
+    "admin-moderation-queue": {
+        "task": "apps.admin_panel.tasks.check_content_moderation_queue",
+        "schedule": 3600,
+    },
+}
 
 # AWS
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")

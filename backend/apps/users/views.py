@@ -84,7 +84,13 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            # TODO: send invite email to create account
+            # Queue invite email via SES
+            from apps.notifications.tasks import send_notification_email
+            send_notification_email.delay(
+                to_email=email,
+                subject=f"You've been invited to {org.name} on AgentBloom",
+                body=f"Join {org.name} at https://agentbloom.nobleblocks.com/auth/register?invite={org.id}&email={email}",
+            )
             return Response({"status": "invite_sent"})
 
         OrgMember.objects.get_or_create(org=org, user=user, defaults={"role": role})

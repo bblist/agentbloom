@@ -27,7 +27,17 @@ class WebhookEndpointViewSet(viewsets.ModelViewSet):
     def test(self, request, pk=None):
         """Send a test webhook to the endpoint."""
         endpoint = self.get_object()
-        # TODO: Celery task to send test payload
+        from .tasks import deliver_webhook
+        test_payload = {
+            "event": "test",
+            "timestamp": timezone.now().isoformat(),
+            "data": {"message": "Test webhook from AgentBloom"},
+        }
+        deliver_webhook.delay(
+            str(endpoint.id),
+            "test",
+            test_payload,
+        )
         return Response({"status": "test_queued"})
 
 
@@ -56,5 +66,6 @@ def incoming_webhook(request, source):
         headers=dict(request.headers),
         ip_address=request.META.get("REMOTE_ADDR"),
     )
-    # TODO: Celery task to process incoming webhook
+    from .tasks import process_incoming_webhook
+    process_incoming_webhook.delay(source, dict(request.data), dict(request.headers))
     return Response({"status": "received"})

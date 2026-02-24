@@ -32,8 +32,10 @@ class SiteViewSet(viewsets.ModelViewSet):
         from django.utils import timezone
         site.status = "published"
         site.published_at = timezone.now()
+        site.is_published = True
         site.save()
-        # TODO: trigger static site generation / CDN invalidation
+        from .tasks import publish_site_to_cdn
+        publish_site_to_cdn.delay(str(site.id))
         return Response({"status": "published"})
 
 
@@ -114,7 +116,7 @@ class MediaLibraryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(org=self.request.org, created_by=self.request.user)
-        # TODO: upload to S3, generate thumbnails
+        # TODO: upload to S3, generate thumbnails via async task
 
 
 class FormViewSet(viewsets.ModelViewSet):
@@ -140,9 +142,10 @@ class FormSubmissionViewSet(viewsets.ReadOnlyModelViewSet):
         """Public endpoint for form submissions."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(
+        instance = serializer.save(
             ip_address=request.META.get("REMOTE_ADDR"),
             user_agent=request.META.get("HTTP_USER_AGENT", ""),
         )
-        # TODO: send notification email
+        from .tasks import process_form_submission
+        process_form_submission.delay(str(instance.id))
         return Response({"status": "submitted"}, status=status.HTTP_201_CREATED)
