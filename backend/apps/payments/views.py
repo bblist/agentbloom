@@ -30,13 +30,54 @@ class StripeConnectionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def onboard(self, request):
         """Initiate Stripe Connect onboarding. Returns onboarding URL."""
-        # TODO: Create Stripe Express account and return AccountLink URL
-        # import stripe
-        # account = stripe.Account.create(type="express", ...)
-        # link = stripe.AccountLink.create(account=account.id, ...)
+        import stripe
+        from django.conf import settings as conf
+
+        stripe.api_key = conf.STRIPE_SECRET_KEY
+        if not stripe.api_key:
+            return Response(
+                {"error": "Stripe is not configured"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        # Check for existing connection
+        conn = StripeConnection.objects.filter(org=request.org).first()
+        if conn and conn.stripe_account_id:
+            account_id = conn.stripe_account_id
+        else:
+            # Create a new Express account
+            account = stripe.Account.create(
+                type="express",
+                email=request.user.email,
+                metadata={"org_id": str(request.org.id)},
+                capabilities={
+                    "card_payments": {"requested": True},
+                    "transfers": {"requested": True},
+                },
+            )
+            account_id = account.id
+            conn, _ = StripeConnection.objects.update_or_create(
+                org=request.org,
+                defaults={
+                    "stripe_account_id": account_id,
+                    "status": "pending",
+                },
+            )
+
+        # Create an account link for onboarding
+        refresh_url = f"{conf.FRONTEND_URL}/dashboard/payments?stripe=refresh"
+        return_url = f"{conf.FRONTEND_URL}/dashboard/payments?stripe=complete"
+
+        link = stripe.AccountLink.create(
+            account=account_id,
+            refresh_url=refresh_url,
+            return_url=return_url,
+            type="account_onboarding",
+        )
+
         return Response({
-            "message": "Stripe Connect onboarding — integration pending",
-            "onboarding_url": None,
+            "onboarding_url": link.url,
+            "account_id": account_id,
         })
 
     @action(detail=False, methods=["get"])
@@ -166,7 +207,21 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         if invoice.status == "draft":
             invoice.status = "open"
             invoice.save(update_fields=["status"])
-        # TODO: Send email via SES
+
+        from django.core.mail import send_mail as _send_mail
+        from django.conf import settings as conf
+        _send_mail(
+            subject=f"Invoice #{invoice.invoice_number} from {invoice.org.name}",
+            message=(
+                f"You have a new invoice.\n\n"
+                f"Amount Due: ${invoice.total_amount}\n"
+                f"Due Date: {invoice.due_date}\n\n"
+                f"Thank you for your business!"
+            ),
+            from_email=conf.DEFAULT_FROM_EMAIL,
+            recipient_list=[invoice.customer_email],
+            fail_silently=True,
+        )
         return Response({"status": invoice.status, "sent": True})
 
     @action(detail=True, methods=["post"])
@@ -188,10 +243,32 @@ class RefundViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         refund = self.get_object()
+        import stripe
+        from django.conf import settings as conf
+
+        stripe.api_key = conf.STRIPE_SECRET_KEY
+        payment = refund.payment
+
+        try:
+            if stripe.api_key and payment.stripe_charge_id:
+                stripe.Refund.create(
+                    charge=payment.stripe_charge_id,
+                    amount=int(refund.amount * 100),  # cents
+                    reason=refund.reason or "requested_by_customer",
+                )
+        except stripe.error.StripeError as e:
+            return Response(
+                {"error": f"Stripe refund failed: {str(e)}"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
         refund.status = "approved"
         refund.approved_by = request.user
         refund.save(update_fields=["status", "approved_by"])
-        # TODO: Process refund via Stripe
+
+        payment.status = "refunded"
+        payment.save(update_fields=["status"])
+
         return Response({"status": "approved"})
 
 

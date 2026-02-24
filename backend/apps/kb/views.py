@@ -58,13 +58,19 @@ class KBDocumentViewSet(viewsets.ModelViewSet):
         if "file" in request.FILES:
             uploaded = request.FILES["file"]
             doc.file_type = uploaded.name.split(".")[-1].lower()
-            # TODO: Upload to S3 and set doc.file_url
+            # Save file via default storage (S3 in prod, local in dev)
+            from django.core.files.storage import default_storage
+            path = f"kb/{doc.org_id}/{doc.id}/{uploaded.name}"
+            saved_path = default_storage.save(path, uploaded)
+            doc.file_url = default_storage.url(saved_path)
+            # Read text content for indexing
+            uploaded.seek(0)
             doc.raw_text = uploaded.read().decode("utf-8", errors="replace")
             doc.save()
 
-        # TODO: Trigger Celery task to process document
-        # from .tasks import process_kb_document
-        # process_kb_document.delay(str(doc.id))
+        # Trigger async processing (chunking + embedding)
+        from .tasks import process_kb_document
+        process_kb_document.delay(str(doc.id))
 
         return Response(KBDocumentDetailSerializer(doc).data, status=201)
 
@@ -78,7 +84,8 @@ class KBDocumentViewSet(viewsets.ModelViewSet):
         doc.status = "pending"
         doc.processing_progress = 0
         doc.save(update_fields=["status", "processing_progress"])
-        # TODO: Trigger Celery task
+        from .tasks import process_kb_document
+        process_kb_document.delay(str(doc.id))
         return Response({"status": "reprocessing"})
 
     @action(detail=True, methods=["post"])
@@ -164,7 +171,8 @@ class KBScrapeScheduleViewSet(viewsets.ModelViewSet):
     def scrape_now(self, request, pk=None):
         """Trigger immediate scrape."""
         schedule = self.get_object()
-        # TODO: Trigger Celery task
+        from .tasks import scrape_url
+        scrape_url.delay(str(schedule.id))
         return Response({"status": "scraping", "url": schedule.url})
 
 

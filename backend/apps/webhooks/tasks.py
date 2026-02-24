@@ -93,17 +93,19 @@ def process_incoming_webhook(webhook_id):
 
         # Route based on source
         if source == "stripe":
-            # Handle Stripe webhook events
-            event_type = payload.get("type", "")
-            logger.info(f"Processing Stripe webhook: {event_type}")
-            # TODO: Route to payments app
+            # Route Stripe events to payments processor
+            from apps.payments.tasks import process_stripe_webhook
+            process_stripe_webhook.delay(payload, webhook.headers.get("Stripe-Signature", ""))
         elif source == "ses":
             # Handle SES notification (bounces, complaints)
             from apps.email_crm.tasks import process_email_event
             process_email_event.delay(payload)
         elif source == "google":
-            logger.info("Processing Google webhook")
-            # TODO: Route to calendar/GBP
+            # Route Google webhook to calendar sync
+            from apps.calendar_booking.tasks import sync_google_calendar
+            connection_id = payload.get("resourceId") or payload.get("connection_id")
+            if connection_id:
+                sync_google_calendar.delay(connection_id)
 
         webhook.status = "processed"
         webhook.save(update_fields=["status"])

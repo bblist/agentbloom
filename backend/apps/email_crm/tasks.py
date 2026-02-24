@@ -21,12 +21,14 @@ def send_campaign_emails(self, campaign_id):
         sent_count = 0
         for contact in contacts:
             try:
-                # TODO: Send via SES
-                # ses_client.send_email(
-                #     Source=f"{campaign.org.name} <noreply@agentbloom.nobleblocks.com>",
-                #     Destination={"ToAddresses": [contact.email]},
-                #     Message={...}
-                # )
+                send_mail(
+                    subject=campaign.subject or campaign.name,
+                    message=campaign.template.body if hasattr(campaign.template, 'body') else str(campaign.template),
+                    from_email=f"{campaign.org.name} <{settings.DEFAULT_FROM_EMAIL}>",
+                    recipient_list=[contact.email],
+                    html_message=getattr(campaign.template, 'html_body', None),
+                    fail_silently=False,
+                )
 
                 CampaignEvent.objects.create(
                     campaign=campaign,

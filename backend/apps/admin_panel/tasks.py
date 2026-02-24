@@ -255,6 +255,16 @@ def check_content_moderation_queue():
     pending = ContentModerationQueue.objects.filter(status="pending").count()
     if pending > 50:
         logger.warning(f"Content moderation queue has {pending} pending items")
-        # TODO: Send alert notification to admins
+        from apps.notifications.models import Notification
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        for admin in User.objects.filter(is_staff=True):
+            Notification.objects.create(
+                user=admin,
+                title="Moderation Queue Alert",
+                message=f"There are {pending} items pending moderation.",
+                notification_type="system",
+                channel="in_app",
+            )
 
     return {"pending": pending}

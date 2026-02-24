@@ -115,8 +115,16 @@ class MediaLibraryViewSet(viewsets.ModelViewSet):
         return MediaLibrary.objects.filter(org=self.request.org)
 
     def perform_create(self, serializer):
-        serializer.save(org=self.request.org, created_by=self.request.user)
-        # TODO: upload to S3, generate thumbnails via async task
+        instance = serializer.save(org=self.request.org, created_by=self.request.user)
+        # If file was uploaded, save via default storage (S3 in prod)
+        if instance.file:
+            from django.core.files.storage import default_storage
+            old_path = instance.file.name
+            new_path = f"media/{instance.org_id}/{instance.id}/{instance.file.name.split('/')[-1]}"
+            if old_path != new_path:
+                saved = default_storage.save(new_path, instance.file)
+                instance.file_url = default_storage.url(saved)
+                instance.save(update_fields=["file_url"])
 
 
 class FormViewSet(viewsets.ModelViewSet):

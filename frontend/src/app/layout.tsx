@@ -3,6 +3,8 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/lib/query-provider";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "@/components/auth-provider";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const metadata: Metadata = {
     title: "AgentBloom — Speak it. Build it. Bloom.",
@@ -23,7 +25,11 @@ export default function RootLayout({
             <body>
                 <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
                     <QueryProvider>
-                        {children}
+                        <AuthProvider>
+                            <ErrorBoundary>
+                                {children}
+                            </ErrorBoundary>
+                        </AuthProvider>
                         <Toaster richColors position="top-right" />
                     </QueryProvider>
                 </ThemeProvider>

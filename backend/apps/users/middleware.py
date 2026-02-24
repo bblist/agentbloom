@@ -16,10 +16,12 @@ class OrganizationMiddleware(MiddlewareMixin):
     """
     Extract org from X-Org-Id header and attach to request.
     Validates user has membership in the org.
+    Also attaches request.org_role for downstream permission checks.
     """
 
     def process_request(self, request):
         request.org = None
+        request.org_role = None
         _thread_locals.org = None
 
         org_id = request.headers.get("X-Org-Id")
@@ -31,7 +33,9 @@ class OrganizationMiddleware(MiddlewareMixin):
         except (Organization.DoesNotExist, ValueError):
             return
 
-        # Verify membership
-        if OrgMember.objects.filter(org=org, user=request.user).exists():
+        # Verify membership and capture role
+        membership = OrgMember.objects.filter(org=org, user=request.user).first()
+        if membership:
             request.org = org
+            request.org_role = membership.role
             _thread_locals.org = org

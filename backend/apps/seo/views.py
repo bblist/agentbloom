@@ -24,12 +24,38 @@ class SEOSettingsViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def generate_sitemap(self, request, pk=None):
         """Trigger sitemap regeneration for a site."""
-        settings = self.get_object()
-        # TODO: Generate sitemap XML and upload to S3 / serve from CDN
+        seo = self.get_object()
         from django.utils import timezone
-        settings.sitemap_last_generated = timezone.now()
-        settings.save(update_fields=["sitemap_last_generated"])
-        return Response({"status": "sitemap_generated"})
+        from apps.sites.models import Page
+
+        # Build sitemap XML from published pages
+        pages = Page.objects.filter(
+            site=seo.site, status="published"
+        ).values_list("slug", flat=True)
+
+        base = seo.canonical_url or f"https://{seo.site.domain}"
+        urls_xml = "".join(
+            f"  <url><loc>{base}/{slug}</loc></url>\n" for slug in pages
+        )
+        sitemap_xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{urls_xml}"
+            '</urlset>'
+        )
+
+        # Upload to S3
+        from django.core.files.storage import default_storage
+        from django.core.files.base import ContentFile
+        path = f"sites/{seo.site_id}/sitemap.xml"
+        if default_storage.exists(path):
+            default_storage.delete(path)
+        default_storage.save(path, ContentFile(sitemap_xml.encode("utf-8")))
+
+        seo.sitemap_url = default_storage.url(path)
+        seo.sitemap_last_generated = timezone.now()
+        seo.save(update_fields=["sitemap_url", "sitemap_last_generated"])
+        return Response({"status": "sitemap_generated", "url": seo.sitemap_url})
 
     @action(detail=True, methods=["post"])
     def generate_robots(self, request, pk=None):
