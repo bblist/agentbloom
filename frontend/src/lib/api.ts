@@ -58,6 +58,8 @@ export const authAPI = {
         api.post("/api/v1/auth/me/delete-account/"),
     dataExport: () =>
         api.get("/api/v1/auth/me/data-export/"),
+    googleLogin: (data: { credential: string }) =>
+        api.post("/api/v1/auth/google/", data),
 };
 
 export const orgAPI = {

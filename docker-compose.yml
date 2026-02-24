@@ -116,12 +116,14 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://bloom.nobleblocks.com}
         - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL:-wss://bloom.nobleblocks.com}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://bloom.nobleblocks.com}
       - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL:-wss://bloom.nobleblocks.com}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
       - NODE_ENV=production
 
 volumes:

@@ -158,6 +158,98 @@ class OnboardingView(generics.RetrieveUpdateAPIView):
             instance.save()
 
 
+class GoogleAuthView(APIView):
+    """Authenticate with Google ID token → returns Bearer token.
+
+    POST {"credential": "<google_id_token>"}
+    The frontend obtains this token via Google Sign-In (GSI).
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+        import os
+
+        credential = request.data.get("credential")
+        if not credential:
+            return Response(
+                {"detail": "Google credential is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+        if not client_id:
+            return Response(
+                {"detail": "Google OAuth is not configured."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        try:
+            idinfo = google_id_token.verify_oauth2_token(
+                credential, google_requests.Request(), client_id
+            )
+        except ValueError:
+            return Response(
+                {"detail": "Invalid Google token."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        email = idinfo.get("email", "").lower().strip()
+        if not email or not idinfo.get("email_verified"):
+            return Response(
+                {"detail": "Google account email not verified."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        full_name = idinfo.get("name", "")
+        avatar_url = idinfo.get("picture", "")
+
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "full_name": full_name,
+                "avatar_url": avatar_url,
+                "email_verified": True,
+            },
+        )
+
+        if not created:
+            # Update avatar if they didn't have one
+            changed = False
+            if not user.avatar_url and avatar_url:
+                user.avatar_url = avatar_url
+                changed = True
+            if not user.email_verified:
+                user.email_verified = True
+                changed = True
+            if changed:
+                user.save(update_fields=["avatar_url", "email_verified"])
+        else:
+            # New user — set unusable password (social-only)
+            user.set_unusable_password()
+            user.save(update_fields=["password"])
+
+        if not user.is_active:
+            return Response(
+                {"detail": "Account is disabled."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "token": token.key,
+                "created": created,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class DataExportView(APIView):
     """GDPR data export — returns all user data as JSON."""
 
