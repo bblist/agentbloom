@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { seoAPI, sitesAPI } from "@/lib/api";
+import { emptyStateAvatar } from "@/lib/dicebear";
 
 interface Audit {
     id: string;
@@ -217,7 +218,7 @@ export default function SEOPage() {
                         <>
                             {!latestAudit ? (
                                 <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-5xl mb-4">📊</p>
+                                    <img src={emptyStateAvatar("no-audits")} alt="" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
                                     <h2 className="text-xl font-semibold mb-2">No audits yet</h2>
                                     <p className="text-gray-500 mb-4">Run your first SEO audit to find optimization opportunities.</p>
                                     <button onClick={runAudit} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg">
@@ -240,7 +241,7 @@ export default function SEOPage() {
                                 </div>
                             ) : (
                                 <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-4xl mb-3">🎉</p>
+                                    <img src={emptyStateAvatar("seo-perfect")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p className="text-green-600 font-medium">No issues found! Your site is well-optimized.</p>
                                 </div>
                             )}
@@ -265,7 +266,7 @@ export default function SEOPage() {
 
                             {keywords.length === 0 ? (
                                 <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-4xl mb-3">🔍</p>
+                                    <img src={emptyStateAvatar("no-keywords")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p className="text-gray-500">No keywords tracked yet. Add keywords above to start tracking rankings.</p>
                                 </div>
                             ) : (

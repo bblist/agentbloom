@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { dicebear } from "@/lib/dicebear";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -45,6 +46,14 @@ export default function LoginPage() {
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <Link href="/">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={dicebear("bottts", "agentbloom-logo", { backgroundColor: ["b6e3f4"], radius: 50 })}
+                                alt=""
+                                className="w-10 h-10 rounded-xl"
+                            />
+                        </div>
                         <h1 className="text-3xl font-bold">
                             <span className="text-blue-600">Agent</span>
                             <span className="text-emerald-500">Bloom</span>

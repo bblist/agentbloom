@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { agentAPI } from "@/lib/api";
+import { agentAvatar, userAvatar } from "@/lib/dicebear";
 import Cookies from "js-cookie";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -342,7 +343,7 @@ export default function AgentChatPage() {
                     </button>
                     <div className="flex-1">
                         <h1 className="text-lg font-semibold flex items-center gap-2">
-                            <span className="text-2xl">🤖</span> AI Agent
+                            <img src={agentAvatar("agentbloom-chat")} alt="" className="w-8 h-8 rounded-full" /> AI Agent
                         </h1>
                         <p className="text-xs text-gray-500">
                             Build websites, write copy, manage your business — just ask
@@ -361,9 +362,12 @@ export default function AgentChatPage() {
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
-                            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                            className={`flex items-start gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                         >
-                            <div className={`max-w-[75%] ${msg.role === "user" ? "" : ""}`}>
+                            {msg.role === "assistant" && (
+                                <img src={agentAvatar("agentbloom-chat")} alt="" className="w-8 h-8 rounded-full mt-1 flex-shrink-0" />
+                            )}
+                            <div className={`max-w-[70%] ${msg.role === "user" ? "" : ""}`}>
                                 {/* Bubble */}
                                 <div
                                     className={`px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
@@ -383,7 +387,7 @@ export default function AgentChatPage() {
                                                 key={i}
                                                 className="flex items-center gap-2 text-xs px-3 py-1.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
                                             >
-                                                <span>{tc.status === "completed" ? "✅" : "⏳"}</span>
+                                                <span className={`w-2 h-2 rounded-full ${tc.status === "completed" ? "bg-emerald-500" : "bg-amber-400 animate-pulse"}`} />
                                                 <span className="font-mono font-medium">{tc.name}</span>
                                                 <span className="text-gray-400">
                                                     {tc.status === "completed" ? "done" : "running..."}
@@ -400,13 +404,17 @@ export default function AgentChatPage() {
                                     </div>
                                 )}
                             </div>
+                            {msg.role === "user" && (
+                                <img src={userAvatar("current-user")} alt="" className="w-8 h-8 rounded-full mt-1 flex-shrink-0" />
+                            )}
                         </div>
                     ))}
 
                     {/* Streaming response */}
                     {streamingContent && (
-                        <div className="flex justify-start">
-                            <div className="max-w-[75%]">
+                        <div className="flex items-start gap-3 justify-start">
+                            <img src={agentAvatar("agentbloom-chat")} alt="" className="w-8 h-8 rounded-full mt-1 flex-shrink-0" />
+                            <div className="max-w-[70%]">
                                 <div className="px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-sm text-sm whitespace-pre-wrap">
                                     {streamingContent}
                                     <span className="inline-block w-2 h-4 bg-blue-500 animate-pulse ml-0.5" />
@@ -425,9 +433,9 @@ export default function AgentChatPage() {
                                         className="flex items-center gap-2 text-xs px-3 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg"
                                     >
                                         {tc.status === "running" ? (
-                                            <span className="animate-spin">⏳</span>
+                                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                                         ) : (
-                                            <span>✅</span>
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
                                         )}
                                         <span className="font-mono font-medium">{tc.name}</span>
                                         <span className="text-gray-400">

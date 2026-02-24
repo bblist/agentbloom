@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { sitesAPI } from "@/lib/api";
+import { thumbnailAvatar, emptyStateAvatar } from "@/lib/dicebear";
 
 interface Site {
     id: string;
@@ -51,7 +52,10 @@ export default function SitesPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold">🌐 Websites</h1>
+                    <h1 className="text-3xl font-bold flex items-center gap-3">
+                        <img src={thumbnailAvatar("websites-header")} alt="" className="w-9 h-9 rounded-lg" />
+                        Websites
+                    </h1>
                     <p className="mt-1 text-gray-500">Manage your published sites and pages</p>
                 </div>
                 <Link
@@ -71,7 +75,7 @@ export default function SitesPage() {
                 </div>
             ) : sites.length === 0 ? (
                 <div className="text-center py-16">
-                    <div className="text-5xl mb-4">🌐</div>
+                    <img src={emptyStateAvatar("no-sites-yet")} alt="" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
                     <h2 className="text-xl font-semibold mb-2">No sites yet</h2>
                     <p className="text-gray-500 mb-6">
                         Ask your AI agent to build your first website
@@ -92,7 +96,7 @@ export default function SitesPage() {
                         >
                             {/* Preview area */}
                             <div className="h-36 bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-950 dark:to-indigo-950 flex items-center justify-center">
-                                <span className="text-4xl opacity-60">🌐</span>
+                                <img src={thumbnailAvatar(site.slug || site.id)} alt="" className="w-16 h-16 rounded-xl opacity-80" />
                             </div>
 
                             {/* Info */}

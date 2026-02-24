@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { navIcon, userAvatar, agentAvatar } from "@/lib/dicebear";
 
 const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: "🏠" },
-    { label: "Agent Chat", href: "/dashboard/agent", icon: "🤖" },
-    { label: "Sites", href: "/dashboard/sites", icon: "🌐" },
-    { label: "Email & CRM", href: "/dashboard/crm", icon: "📧" },
-    { label: "Courses", href: "/dashboard/courses", icon: "📚" },
-    { label: "Bookings", href: "/dashboard/bookings", icon: "📅" },
-    { label: "Payments", href: "/dashboard/payments", icon: "💳" },
-    { label: "SEO", href: "/dashboard/seo", icon: "📊" },
-    { label: "Settings", href: "/dashboard/settings", icon: "⚙️" },
+    { label: "Dashboard", href: "/dashboard", seed: "dashboard-home" },
+    { label: "Agent Chat", href: "/dashboard/agent", seed: "ai-agent-bot" },
+    { label: "Sites", href: "/dashboard/sites", seed: "website-globe" },
+    { label: "Email & CRM", href: "/dashboard/crm", seed: "email-crm-contacts" },
+    { label: "Courses", href: "/dashboard/courses", seed: "courses-education" },
+    { label: "Bookings", href: "/dashboard/bookings", seed: "calendar-bookings" },
+    { label: "Payments", href: "/dashboard/payments", seed: "payments-stripe" },
+    { label: "SEO", href: "/dashboard/seo", seed: "seo-analytics" },
+    { label: "Settings", href: "/dashboard/settings", seed: "settings-gear" },
 ];
 
 export default function DashboardLayout({
@@ -27,7 +28,12 @@ export default function DashboardLayout({
             {/* Sidebar */}
             <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col">
                 {/* Logo */}
-                <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-3">
+                    <img
+                        src={agentAvatar("agentbloom-logo")}
+                        alt=""
+                        className="w-8 h-8 rounded-lg"
+                    />
                     <Link href="/dashboard">
                         <h1 className="text-xl font-bold">
                             <span className="text-blue-600">Agent</span>
@@ -49,7 +55,11 @@ export default function DashboardLayout({
                                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                                     }`}
                             >
-                                <span className="text-lg">{item.icon}</span>
+                                <img
+                                    src={navIcon(item.seed)}
+                                    alt=""
+                                    className="w-6 h-6 rounded"
+                                />
                                 {item.label}
                             </Link>
                         );
@@ -59,7 +69,11 @@ export default function DashboardLayout({
                 {/* User menu footer */}
                 <div className="p-3 border-t border-gray-200 dark:border-gray-800">
                     <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                        <span className="text-lg">👤</span>
+                        <img
+                            src={userAvatar("current-user")}
+                            alt=""
+                            className="w-7 h-7 rounded-full"
+                        />
                         Account
                     </button>
                 </div>

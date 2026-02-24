@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { crmAPI } from "@/lib/api";
+import { contactAvatar, emptyStateAvatar, shapeIcon } from "@/lib/dicebear";
 
 interface Contact {
     id: string;
@@ -204,7 +205,7 @@ export default function CRMPage() {
                         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {contacts.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
-                                    <p className="text-4xl mb-3">📧</p>
+                                    <img src={emptyStateAvatar("no-contacts")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p>No contacts yet. Add your first contact or import a CSV.</p>
                                 </div>
                             ) : (
@@ -221,7 +222,12 @@ export default function CRMPage() {
                                     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                         {contacts.map((c) => (
                                             <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                                                <td className="px-4 py-3 font-medium">{c.first_name} {c.last_name}</td>
+                                                <td className="px-4 py-3 font-medium">
+                                                    <div className="flex items-center gap-2">
+                                                        <img src={contactAvatar(c.email || c.first_name)} alt="" className="w-7 h-7 rounded-full" />
+                                                        {c.first_name} {c.last_name}
+                                                    </div>
+                                                </td>
                                                 <td className="px-4 py-3 text-gray-500">{c.email}</td>
                                                 <td className="px-4 py-3 text-gray-500">{c.phone || "—"}</td>
                                                 <td className="px-4 py-3">
@@ -255,7 +261,7 @@ export default function CRMPage() {
                         <div className="space-y-4">
                             {campaigns.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-4xl mb-3">📨</p>
+                                    <img src={emptyStateAvatar("no-campaigns")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p>No campaigns yet. Create your first email campaign.</p>
                                 </div>
                             ) : (
@@ -306,7 +312,7 @@ export default function CRMPage() {
                         <div className="space-y-4">
                             {deals.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-4xl mb-3">💼</p>
+                                    <img src={emptyStateAvatar("no-deals")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p>No deals yet. Deals will appear here as they&apos;re created.</p>
                                 </div>
                             ) : (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { coursesAPI } from "@/lib/api";
+import { thumbnailAvatar, emptyStateAvatar } from "@/lib/dicebear";
 
 interface Course {
     id: string;
@@ -138,7 +139,7 @@ export default function CoursesPage() {
                 <div className="text-center py-20 text-gray-400">Loading...</div>
             ) : courses.length === 0 ? (
                 <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <p className="text-5xl mb-4">📚</p>
+                    <img src={emptyStateAvatar("no-courses")} alt="" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
                     <h2 className="text-xl font-semibold mb-2">No courses yet</h2>
                     <p className="text-gray-500 mb-4">Create your first course with lessons, quizzes, and certificates.</p>
                     <button
@@ -157,7 +158,7 @@ export default function CoursesPage() {
                         >
                             {/* Thumbnail placeholder */}
                             <div className="h-40 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl">
-                                📚
+                                <img src={thumbnailAvatar(course.title || course.id)} alt="" className="w-16 h-16 rounded-xl" />
                             </div>
                             <div className="p-4">
                                 <div className="flex items-start justify-between mb-2">

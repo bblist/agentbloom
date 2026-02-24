@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dicebear } from "@/lib/dicebear";
 
 export default function HomePage() {
     return (
@@ -6,6 +7,14 @@ export default function HomePage() {
             <div className="text-center max-w-3xl mx-auto px-6">
                 {/* Logo / Brand */}
                 <div className="mb-8">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={dicebear("bottts", "agentbloom-hero", { backgroundColor: ["b6e3f4", "c0aede"], backgroundType: "gradientLinear", radius: 50 })}
+                            alt="AgentBloom"
+                            className="w-16 h-16 rounded-2xl shadow-lg"
+                        />
+                    </div>
                     <h1 className="text-6xl font-bold tracking-tight">
                         <span className="text-blue-600 dark:text-blue-400">Agent</span>
                         <span className="text-emerald-500">Bloom</span>
@@ -40,19 +49,21 @@ export default function HomePage() {
                 {/* Feature Pills */}
                 <div className="mt-16 flex flex-wrap gap-3 justify-center">
                     {[
-                        "AI Website Builder",
-                        "Email & CRM",
-                        "Online Courses",
-                        "Booking System",
-                        "Payment Processing",
-                        "SEO Optimization",
-                        "AI Receptionist",
+                        { name: "AI Website Builder", seed: "feature-ai-builder" },
+                        { name: "Email & CRM", seed: "feature-email-crm" },
+                        { name: "Online Courses", seed: "feature-courses" },
+                        { name: "Booking System", seed: "feature-bookings" },
+                        { name: "Payment Processing", seed: "feature-payments" },
+                        { name: "SEO Optimization", seed: "feature-seo" },
+                        { name: "AI Receptionist", seed: "feature-receptionist" },
                     ].map((feature) => (
                         <span
-                            key={feature}
-                            className="px-4 py-2 text-sm rounded-full bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700"
+                            key={feature.name}
+                            className="px-4 py-2 text-sm rounded-full bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 flex items-center gap-2"
                         >
-                            {feature}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={dicebear("shapes", feature.seed, { size: 20 })} alt="" className="w-5 h-5 rounded" />
+                            {feature.name}
                         </span>
                     ))}
                 </div>

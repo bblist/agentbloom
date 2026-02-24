@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { sitesAPI, crmAPI, bookingsAPI, paymentsAPI } from "@/lib/api";
+import { shapeIcon, agentAvatar, thumbnailAvatar, emptyStateAvatar } from "@/lib/dicebear";
 
 interface Stats {
     sites: number;
@@ -55,10 +56,10 @@ export default function DashboardPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: "Sites", value: stats.sites.toString(), icon: "🌐" },
-                    { label: "Contacts", value: stats.contacts.toString(), icon: "👥" },
-                    { label: "Bookings", value: stats.bookings.toString(), icon: "📅" },
-                    { label: "Revenue", value: `$${stats.revenue.toFixed(2)}`, icon: "💰" },
+                    { label: "Sites", value: stats.sites.toString(), seed: "stat-sites-globe" },
+                    { label: "Contacts", value: stats.contacts.toString(), seed: "stat-contacts-people" },
+                    { label: "Bookings", value: stats.bookings.toString(), seed: "stat-bookings-calendar" },
+                    { label: "Revenue", value: `$${stats.revenue.toFixed(2)}`, seed: "stat-revenue-money" },
                 ].map((stat) => (
                     <div
                         key={stat.label}
@@ -66,7 +67,7 @@ export default function DashboardPage() {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-gray-500">{stat.label}</span>
-                            <span className="text-2xl">{stat.icon}</span>
+                            <img src={shapeIcon(stat.seed)} alt="" className="w-10 h-10 rounded-lg" />
                         </div>
                         <span className="text-3xl font-bold">{stat.value}</span>
                     </div>
@@ -78,7 +79,7 @@ export default function DashboardPage() {
                 <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Link href="/dashboard/agent" className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-left hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors">
-                        <span className="text-2xl mb-2 block">🤖</span>
+                        <img src={agentAvatar("quick-action-agent")} alt="" className="w-10 h-10 rounded-xl mb-2" />
                         <span className="font-semibold text-blue-700 dark:text-blue-400">
                             Talk to your AI Agent
                         </span>
@@ -87,7 +88,7 @@ export default function DashboardPage() {
                         </p>
                     </Link>
                     <Link href="/dashboard/sites" className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl text-left hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors">
-                        <span className="text-2xl mb-2 block">🌐</span>
+                        <img src={thumbnailAvatar("quick-action-sites")} alt="" className="w-10 h-10 rounded-xl mb-2" />
                         <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                             Create a Website
                         </span>
@@ -96,7 +97,7 @@ export default function DashboardPage() {
                         </p>
                     </Link>
                     <Link href="/dashboard/crm" className="p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-xl text-left hover:bg-purple-100 dark:hover:bg-purple-950/50 transition-colors">
-                        <span className="text-2xl mb-2 block">📧</span>
+                        <img src={emptyStateAvatar("quick-action-crm")} alt="" className="w-10 h-10 rounded-xl mb-2" />
                         <span className="font-semibold text-purple-700 dark:text-purple-400">
                             Import Contacts
                         </span>

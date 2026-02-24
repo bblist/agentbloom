@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { bookingsAPI } from "@/lib/api";
+import { shapeIcon, emptyStateAvatar } from "@/lib/dicebear";
 
 interface Service {
     id: string;
@@ -135,15 +136,15 @@ export default function BookingsPage() {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                    { label: "Total Bookings", value: bookings.length, icon: "📅" },
-                    { label: "Upcoming", value: upcoming.length, icon: "⏳" },
-                    { label: "Services", value: services.length, icon: "🛎️" },
-                    { label: "Active Services", value: services.filter((s) => s.is_active).length, icon: "✅" },
+                    { label: "Total Bookings", value: bookings.length, seed: "bookings-total" },
+                    { label: "Upcoming", value: upcoming.length, seed: "bookings-upcoming" },
+                    { label: "Services", value: services.length, seed: "bookings-services" },
+                    { label: "Active Services", value: services.filter((s) => s.is_active).length, seed: "bookings-active" },
                 ].map((stat) => (
                     <div key={stat.label} className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-xs text-gray-500">{stat.label}</span>
-                            <span>{stat.icon}</span>
+                            <img src={shapeIcon(stat.seed)} alt="" className="w-8 h-8 rounded" />
                         </div>
                         <span className="text-2xl font-bold">{stat.value}</span>
                     </div>
@@ -212,7 +213,7 @@ export default function BookingsPage() {
 
                             {services.length === 0 ? (
                                 <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-5xl mb-4">🛎️</p>
+                                    <img src={emptyStateAvatar("no-services")} alt="" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
                                     <h2 className="text-xl font-semibold mb-2">No services yet</h2>
                                     <p className="text-gray-500 mb-4">Create bookable services for your clients.</p>
                                     <button onClick={() => setShowCreateService(true)} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg">
@@ -246,7 +247,7 @@ export default function BookingsPage() {
                         <>
                             {bookings.length === 0 ? (
                                 <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                    <p className="text-5xl mb-4">📅</p>
+                                    <img src={emptyStateAvatar("no-bookings")} alt="" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
                                     <h2 className="text-xl font-semibold mb-2">No bookings yet</h2>
                                     <p className="text-gray-500">Bookings will appear here when clients schedule appointments.</p>
                                 </div>

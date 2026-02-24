@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { paymentsAPI } from "@/lib/api";
+import { shapeIcon, emptyStateAvatar } from "@/lib/dicebear";
 
 interface Payment {
     id: string;
@@ -162,15 +163,15 @@ export default function PaymentsPage() {
                         <>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                                 {[
-                                    { label: "Total Revenue", value: `$${totalRevenue.toFixed(2)}`, icon: "💰" },
-                                    { label: "MRR", value: `$${mrr.toFixed(2)}`, icon: "📈" },
-                                    { label: "Active Subs", value: activeSubscriptions.toString(), icon: "🔄" },
-                                    { label: "Transactions", value: payments.length.toString(), icon: "💳" },
+                                    { label: "Total Revenue", value: `$${totalRevenue.toFixed(2)}`, seed: "pay-revenue" },
+                                    { label: "MRR", value: `$${mrr.toFixed(2)}`, seed: "pay-mrr" },
+                                    { label: "Active Subs", value: activeSubscriptions.toString(), seed: "pay-subs" },
+                                    { label: "Transactions", value: payments.length.toString(), seed: "pay-txn" },
                                 ].map((stat) => (
                                     <div key={stat.label} className="p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-xs text-gray-500">{stat.label}</span>
-                                            <span className="text-xl">{stat.icon}</span>
+                                            <img src={shapeIcon(stat.seed)} alt="" className="w-9 h-9 rounded-lg" />
                                         </div>
                                         <span className="text-2xl font-bold">{stat.value}</span>
                                     </div>
@@ -179,7 +180,7 @@ export default function PaymentsPage() {
 
                             {!stripeConnected && (
                                 <div className="p-8 text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-                                    <p className="text-5xl mb-4">💳</p>
+                                    <img src={emptyStateAvatar("connect-stripe")} alt="" className="w-20 h-20 mx-auto mb-4 rounded-2xl" />
                                     <h2 className="text-xl font-semibold mb-2">Connect Stripe to Get Started</h2>
                                     <p className="text-gray-500 mb-4">Accept payments, manage subscriptions, and send invoices.</p>
                                     <button
@@ -219,7 +220,7 @@ export default function PaymentsPage() {
                         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {payments.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
-                                    <p className="text-4xl mb-3">💳</p>
+                                    <img src={emptyStateAvatar("no-payments")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p>No payments recorded yet.</p>
                                 </div>
                             ) : (
@@ -256,7 +257,7 @@ export default function PaymentsPage() {
                         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {subscriptions.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
-                                    <p className="text-4xl mb-3">🔄</p>
+                                    <img src={emptyStateAvatar("no-subscriptions")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p>No subscriptions yet.</p>
                                 </div>
                             ) : (
@@ -295,7 +296,7 @@ export default function PaymentsPage() {
                         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {invoices.length === 0 ? (
                                 <div className="text-center py-16 text-gray-400">
-                                    <p className="text-4xl mb-3">📄</p>
+                                    <img src={emptyStateAvatar("no-invoices")} alt="" className="w-16 h-16 mx-auto mb-3 rounded-xl" />
                                     <p>No invoices yet.</p>
                                 </div>
                             ) : (
