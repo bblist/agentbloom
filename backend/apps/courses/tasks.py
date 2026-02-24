@@ -1,5 +1,7 @@
 """Celery tasks for courses."""
 from celery import shared_task
+from django.core.mail import send_mail
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -62,10 +64,14 @@ def send_course_announcement_emails(announcement_id):
         enrollments = announcement.course.enrollments.select_related("user").all()
         sent = 0
         for enrollment in enrollments:
-            # TODO: Send via SES
+            send_mail(
+                subject=f"[{announcement.course.title}] {announcement.title}",
+                message=announcement.content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[enrollment.user.email],
+                fail_silently=True,
+            )
             sent += 1
-
-        logger.info(f"Sent announcement '{announcement.title}' to {sent} students")
         return {"sent": sent}
 
     except CourseAnnouncement.DoesNotExist:

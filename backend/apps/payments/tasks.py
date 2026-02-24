@@ -1,5 +1,7 @@
 """Celery tasks for Payments processing."""
 from celery import shared_task
+from django.core.mail import send_mail
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -234,10 +236,21 @@ def send_payment_receipt(payment_id):
 
     try:
         payment = Payment.objects.select_related("org").get(id=payment_id)
-        # TODO: Use SES to send receipt email
-        # Template with payment details, amount, date, etc.
-        logger.info(f"Receipt email stub for payment {payment_id}")
-        return {"payment_id": str(payment_id), "status": "stub"}
+        send_mail(
+            subject=f"Payment Receipt — {payment.org.name}",
+            message=(
+                f"Thank you for your payment.\n\n"
+                f"Amount: ${payment.amount}\n"
+                f"Date: {payment.created_at.strftime('%B %d, %Y')}\n"
+                f"Reference: {payment.id}\n\n"
+                f"Thank you for your business!"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[payment.customer_email],
+            fail_silently=True,
+        )
+        logger.info(f"Receipt email sent for payment {payment_id}")
+        return {"payment_id": str(payment_id), "status": "sent"}
     except Payment.DoesNotExist:
         return {"error": "not_found"}
 
@@ -258,7 +271,16 @@ def process_dunning(org_id):
         days_overdue = (timezone.now() - sub.updated_at).days
         # Dunning schedule: Day 1, 3, 7, 14
         if days_overdue in [1, 3, 7, 14]:
-            # TODO: Send dunning email via SES
+            send_mail(
+                subject="Action Required: Payment Past Due",
+                message=(
+                    f"Your subscription payment is {days_overdue} day(s) overdue.\n"
+                    f"Please update your payment method to avoid service interruption.\n"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[sub.org.owner.email if hasattr(sub.org, 'owner') else settings.DEFAULT_FROM_EMAIL],
+                fail_silently=True,
+            )
             logger.info(f"Dunning email day {days_overdue} for sub {sub.id}")
 
     return {"org_id": str(org_id), "past_due_count": past_due.count()}

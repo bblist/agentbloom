@@ -1,5 +1,8 @@
 """Celery tasks for sites operations."""
 from celery import shared_task
+from django.core.mail import send_mail
+from django.conf import settings
+import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,8 +35,35 @@ def process_form_submission(submission_id):
             data={"submission_id": str(submission_id)},
         )
 
-        # TODO: Send email notification via SES
-        # TODO: Create/update CRM contact
+        # Send email notification
+        send_mail(
+            subject=f"New form submission: {submission.form.name}",
+            message=(
+                f"You have a new form submission on {submission.form.site.name}.\n\n"
+                f"Form: {submission.form.name}\n"
+                f"Data: {submission.data}\n"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[org.owner.email if hasattr(org, 'owner') else settings.DEFAULT_FROM_EMAIL],
+            fail_silently=True,
+        )
+
+        # Create/update CRM contact if email provided
+        submission_email = submission.data.get('email')
+        if submission_email:
+            try:
+                from apps.email_crm.models import Contact
+                Contact.objects.get_or_create(
+                    org=org,
+                    email=submission_email,
+                    defaults={
+                        "first_name": submission.data.get("first_name", ""),
+                        "last_name": submission.data.get("last_name", ""),
+                        "source": "form_submission",
+                    },
+                )
+            except Exception as e:
+                logger.warning(f"Could not create CRM contact: {e}")
 
         return {"status": "processed", "submission_id": str(submission_id)}
 
@@ -58,7 +88,18 @@ def publish_site_to_cdn(site_id):
                 "title": page.seo_title or page.title,
                 "description": page.seo_description or "",
             })
-            # TODO: Upload to S3 with CloudFront
+            # Upload rendered HTML to S3
+            import boto3
+            s3 = boto3.client("s3", region_name=settings.AWS_REGION)
+            bucket = settings.AWS_S3_BUCKET_SITES
+            key = f"sites/{site.id}/{page.slug}.html"
+            s3.put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=html.encode("utf-8"),
+                ContentType="text/html",
+                CacheControl="public, max-age=3600",
+            )
             rendered.append(page.slug)
 
         site.status = "published"
@@ -75,6 +116,23 @@ def publish_site_to_cdn(site_id):
 @shared_task
 def invalidate_cdn_cache(site_id):
     """Invalidate CloudFront cache for a site."""
-    # TODO: Call CloudFront invalidation API
-    logger.info(f"CDN invalidation for site {site_id} — not yet implemented")
-    return {"status": "pending_implementation"}
+    import boto3
+
+    distribution_id = settings.AWS_CLOUDFRONT_DISTRIBUTION_ID if hasattr(settings, 'AWS_CLOUDFRONT_DISTRIBUTION_ID') else os.getenv("AWS_CLOUDFRONT_DISTRIBUTION_ID", "")
+    if not distribution_id:
+        logger.warning(f"No CloudFront distribution ID configured, skipping invalidation for site {site_id}")
+        return {"status": "skipped", "reason": "no_distribution_id"}
+
+    cf = boto3.client("cloudfront", region_name=settings.AWS_REGION)
+    cf.create_invalidation(
+        DistributionId=distribution_id,
+        InvalidationBatch={
+            "Paths": {
+                "Quantity": 1,
+                "Items": [f"/sites/{site_id}/*"],
+            },
+            "CallerReference": f"site-{site_id}-{__import__('time').time()}",
+        },
+    )
+    logger.info(f"CDN invalidation created for site {site_id}")
+    return {"status": "invalidated"}

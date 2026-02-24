@@ -40,6 +40,18 @@ class WebhookEndpointViewSet(viewsets.ModelViewSet):
         )
         return Response({"status": "test_queued"})
 
+    @action(detail=True, methods=["get"])
+    def deliveries(self, request, pk=None):
+        """List delivery logs for a specific webhook endpoint."""
+        endpoint = self.get_object()
+        logs = WebhookDeliveryLog.objects.filter(endpoint=endpoint).order_by("-created_at")
+        page = self.paginate_queryset(logs)
+        if page is not None:
+            return self.get_paginated_response(
+                WebhookDeliveryLogSerializer(page, many=True).data
+            )
+        return Response(WebhookDeliveryLogSerializer(logs, many=True).data)
+
 
 class WebhookEventViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = WebhookEventSerializer

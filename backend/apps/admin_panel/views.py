@@ -1,7 +1,8 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers as drf_serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils import timezone
 
@@ -19,6 +20,8 @@ from .serializers import (
     ImpersonationSessionSerializer, UserLifecycleEventSerializer,
     RevenueAnalyticsSerializer, PlatformMetricsSerializer,
 )
+
+User = get_user_model()
 
 
 class FeatureFlagViewSet(viewsets.ModelViewSet):
@@ -251,3 +254,42 @@ class PlatformMetricsViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(PlatformMetricsSerializer(metrics).data)
         except PlatformMetrics.DoesNotExist:
             return Response({"error": "No metrics for today"}, status=404)
+
+
+class AdminUserSerializer(drf_serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id", "email", "first_name", "last_name",
+            "is_active", "is_staff", "is_superuser",
+            "date_joined", "last_login",
+        ]
+        read_only_fields = fields
+
+
+class AdminUserViewSet(viewsets.ReadOnlyModelViewSet):
+    """Admin-only view to list / retrieve platform users."""
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAdminUser]
+    queryset = User.objects.all().order_by("-date_joined")
+    filterset_fields = ["is_active", "is_staff"]
+    search_fields = ["email", "first_name", "last_name"]
+
+    @action(detail=True, methods=["post"])
+    def impersonate(self, request, pk=None):
+        """Start an impersonation session for the target user."""
+        target = self.get_object()
+        if target.is_superuser:
+            return Response(
+                {"error": "Cannot impersonate a superuser"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        session = ImpersonationSession.objects.create(
+            admin_user=request.user,
+            target_user=target,
+            reason=request.data.get("reason", ""),
+        )
+        return Response(
+            ImpersonationSessionSerializer(session).data,
+            status=status.HTTP_201_CREATED,
+        )

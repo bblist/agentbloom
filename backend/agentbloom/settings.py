@@ -163,7 +163,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage"
+            if not DEBUG else "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -278,6 +279,16 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 AWS_S3_BUCKET_ASSETS = os.getenv("AWS_S3_BUCKET_ASSETS", "agentbloom-assets")
 AWS_S3_BUCKET_SITES = os.getenv("AWS_S3_BUCKET_SITES", "agentbloom-sites")
 AWS_CLOUDFRONT_DOMAIN = os.getenv("AWS_CLOUDFRONT_DOMAIN", "")
+AWS_STORAGE_BUCKET_NAME = AWS_S3_BUCKET_ASSETS  # default storage bucket
+AWS_S3_REGION_NAME = AWS_REGION
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_CUSTOM_DOMAIN = AWS_CLOUDFRONT_DOMAIN or None
+
+# Stripe
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 # Email (SES)
 EMAIL_BACKEND = "django_ses.SESBackend" if not DEBUG else "django.core.mail.backends.console.EmailBackend"

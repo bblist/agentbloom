@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import Notification, NotificationPreference, ActivityFeedEntry
 from .serializers import (
     NotificationSerializer,
@@ -32,6 +33,37 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def unread_count(self, request):
         count = self.get_queryset().filter(is_read=False).count()
         return Response({"count": count})
+
+
+class NotificationPreferenceSingletonView(APIView):
+    """
+    GET / PATCH singleton notification preferences for the current user.
+    Creates a default preference object if none exists.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        pref, _ = NotificationPreference.objects.get_or_create(
+            user=self.request.user,
+            defaults={
+                "email_enabled": True,
+                "push_enabled": True,
+                "marketing_enabled": False,
+                "digest_frequency": "daily",
+            },
+        )
+        return pref
+
+    def get(self, request):
+        pref = self.get_object()
+        return Response(NotificationPreferenceSerializer(pref).data)
+
+    def patch(self, request):
+        pref = self.get_object()
+        serializer = NotificationPreferenceSerializer(pref, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class NotificationPreferenceViewSet(viewsets.ModelViewSet):

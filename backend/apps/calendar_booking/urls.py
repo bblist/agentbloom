@@ -4,7 +4,7 @@ from . import views
 
 router = DefaultRouter()
 router.register(r"services", views.ServiceViewSet, basename="service")
-router.register(r"availability", views.AvailabilityScheduleViewSet, basename="availability")
+router.register(r"schedules", views.AvailabilityScheduleViewSet, basename="availability")
 router.register(r"blocked-dates", views.BlockedDateViewSet, basename="blocked-date")
 router.register(r"bookings", views.BookingViewSet, basename="booking")
 router.register(r"events", views.EventViewSet, basename="event")

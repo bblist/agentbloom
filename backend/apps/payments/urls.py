@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 router = DefaultRouter()
-router.register(r"stripe", views.StripeConnectionViewSet, basename="stripe")
+router.register(r"stripe-connection", views.StripeConnectionViewSet, basename="stripe")
 router.register(r"products", views.ProductViewSet, basename="product")
 router.register(r"prices", views.PriceViewSet, basename="price")
 router.register(r"coupons", views.CouponViewSet, basename="coupon")
@@ -17,7 +17,7 @@ router.register(r"checkout-pages", views.CheckoutPageViewSet, basename="checkout
 router.register(r"plans", views.PlatformPlanViewSet, basename="plan")
 router.register(r"platform-subscription", views.PlatformSubscriptionViewSet, basename="platform-subscription")
 router.register(r"usage", views.UsageTrackingViewSet, basename="usage")
-router.register(r"revenue", views.RevenueSnapshotViewSet, basename="revenue")
+router.register(r"revenue-snapshots", views.RevenueSnapshotViewSet, basename="revenue")
 
 urlpatterns = [
     path("", include(router.urls)),

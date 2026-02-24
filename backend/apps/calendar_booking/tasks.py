@@ -1,5 +1,7 @@
 """Celery tasks for bookings."""
 from celery import shared_task
+from django.core.mail import send_mail
+from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,7 +14,18 @@ def send_booking_confirmation(booking_id):
 
     try:
         booking = Booking.objects.select_related("service", "org").get(id=booking_id)
-        # TODO: Send confirmation email via SES
+        send_mail(
+            subject=f"Booking Confirmed: {booking.service.name}",
+            message=(
+                f"Hi {booking.customer_name},\n\n"
+                f"Your booking for {booking.service.name} on "
+                f"{booking.start_time.strftime('%B %d, %Y at %I:%M %p')} "
+                f"has been confirmed.\n\nThank you!"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[booking.customer_email],
+            fail_silently=True,
+        )
         logger.info(f"Confirmation sent for booking {booking.customer_name} - {booking.service.name}")
         return {"status": "sent", "booking_id": str(booking_id)}
     except Booking.DoesNotExist:
@@ -38,7 +51,19 @@ def send_booking_reminders():
 
     sent = 0
     for booking in bookings:
-        # TODO: Send reminder email via SES
+        send_mail(
+            subject=f"Reminder: {booking.service.name} tomorrow",
+            message=(
+                f"Hi {booking.customer_name},\n\n"
+                f"This is a reminder that your booking for "
+                f"{booking.service.name} is scheduled for "
+                f"{booking.start_time.strftime('%B %d, %Y at %I:%M %p')}.\n\n"
+                f"See you soon!"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[booking.customer_email],
+            fail_silently=True,
+        )
         booking.reminder_sent = True
         booking.save(update_fields=["reminder_sent"])
         sent += 1
