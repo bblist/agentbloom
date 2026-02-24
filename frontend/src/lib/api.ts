@@ -88,6 +88,98 @@ export const crmAPI = {
     contacts: () => api.get("/api/v1/crm/contacts/"),
     createContact: (data: Record<string, unknown>) =>
         api.post("/api/v1/crm/contacts/", data),
+    contact: (id: string) => api.get(`/api/v1/crm/contacts/${id}/`),
+    updateContact: (id: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/crm/contacts/${id}/`, data),
+    deleteContact: (id: string) => api.delete(`/api/v1/crm/contacts/${id}/`),
+    unsubscribe: (id: string) =>
+        api.post(`/api/v1/crm/contacts/${id}/unsubscribe/`),
+    importCSV: (file: File) => {
+        const form = new FormData();
+        form.append("file", file);
+        return api.post("/api/v1/crm/contacts/import_csv/", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    },
+    segments: () => api.get("/api/v1/crm/segments/"),
     campaigns: () => api.get("/api/v1/crm/campaigns/"),
+    campaign: (id: string) => api.get(`/api/v1/crm/campaigns/${id}/`),
+    createCampaign: (data: Record<string, unknown>) =>
+        api.post("/api/v1/crm/campaigns/", data),
+    sendCampaign: (id: string) =>
+        api.post(`/api/v1/crm/campaigns/${id}/send/`),
     deals: () => api.get("/api/v1/crm/deals/"),
+    createDeal: (data: Record<string, unknown>) =>
+        api.post("/api/v1/crm/deals/", data),
+    templates: () => api.get("/api/v1/crm/templates/"),
+};
+
+export const coursesAPI = {
+    list: () => api.get("/api/v1/courses/courses/"),
+    get: (id: string) => api.get(`/api/v1/courses/courses/${id}/`),
+    create: (data: Record<string, unknown>) =>
+        api.post("/api/v1/courses/courses/", data),
+    update: (id: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/courses/courses/${id}/`, data),
+    delete: (id: string) => api.delete(`/api/v1/courses/courses/${id}/`),
+    publish: (id: string) =>
+        api.post(`/api/v1/courses/courses/${id}/publish/`),
+    archive: (id: string) =>
+        api.post(`/api/v1/courses/courses/${id}/archive/`),
+    stats: (id: string) =>
+        api.get(`/api/v1/courses/courses/${id}/stats/`),
+    enrollments: () => api.get("/api/v1/courses/enrollments/"),
+    announcements: () => api.get("/api/v1/courses/announcements/"),
+};
+
+export const bookingsAPI = {
+    services: () => api.get("/api/v1/calendar/services/"),
+    service: (id: string) => api.get(`/api/v1/calendar/services/${id}/`),
+    createService: (data: Record<string, unknown>) =>
+        api.post("/api/v1/calendar/services/", data),
+    updateService: (id: string, data: Record<string, unknown>) =>
+        api.patch(`/api/v1/calendar/services/${id}/`, data),
+    availableSlots: (id: string, date: string) =>
+        api.get(`/api/v1/calendar/services/${id}/available_slots/?date=${date}`),
+    bookings: () => api.get("/api/v1/calendar/bookings/"),
+    booking: (id: string) => api.get(`/api/v1/calendar/bookings/${id}/`),
+    confirmBooking: (id: string) =>
+        api.post(`/api/v1/calendar/bookings/${id}/confirm/`),
+    cancelBooking: (id: string) =>
+        api.post(`/api/v1/calendar/bookings/${id}/cancel/`),
+    schedules: () => api.get("/api/v1/calendar/schedules/"),
+    events: () => api.get("/api/v1/calendar/events/"),
+};
+
+export const paymentsAPI = {
+    payments: () => api.get("/api/v1/payments/payments/"),
+    summary: () => api.get("/api/v1/payments/payments/summary/"),
+    products: () => api.get("/api/v1/payments/products/"),
+    createProduct: (data: Record<string, unknown>) =>
+        api.post("/api/v1/payments/products/", data),
+    subscriptions: () => api.get("/api/v1/payments/subscriptions/"),
+    invoices: () => api.get("/api/v1/payments/invoices/"),
+    sendInvoice: (id: string) =>
+        api.post(`/api/v1/payments/invoices/${id}/send_invoice/`),
+    coupons: () => api.get("/api/v1/payments/coupons/"),
+    refunds: () => api.get("/api/v1/payments/refunds/"),
+    stripeConnection: () => api.get("/api/v1/payments/stripe-connection/"),
+    onboardStripe: () =>
+        api.post("/api/v1/payments/stripe-connection/onboard/"),
+    revenue: () => api.get("/api/v1/payments/revenue-snapshots/"),
+};
+
+export const seoAPI = {
+    settings: (siteId: string) =>
+        api.get(`/api/v1/seo/settings/?site=${siteId}`),
+    audits: () => api.get("/api/v1/seo/audits/"),
+    runAudit: (siteId: string) =>
+        api.post("/api/v1/seo/audits/run_audit/", { site_id: siteId }),
+    keywords: () => api.get("/api/v1/seo/keywords/"),
+    addKeywords: (data: { keywords: string[] }) =>
+        api.post("/api/v1/seo/keywords/bulk_add/", data),
+    generateSitemap: (siteId: string) =>
+        api.post(`/api/v1/seo/settings/generate_sitemap/`, { site_id: siteId }),
+    pageSpeed: () => api.get("/api/v1/seo/page-speed/"),
+    linkSuggestions: () => api.get("/api/v1/seo/link-suggestions/"),
 };

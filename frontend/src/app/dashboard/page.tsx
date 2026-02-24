@@ -1,4 +1,47 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { sitesAPI, crmAPI, bookingsAPI, paymentsAPI } from "@/lib/api";
+
+interface Stats {
+    sites: number;
+    contacts: number;
+    bookings: number;
+    revenue: number;
+}
+
 export default function DashboardPage() {
+    const [stats, setStats] = useState<Stats>({ sites: 0, contacts: 0, bookings: 0, revenue: 0 });
+
+    useEffect(() => {
+        async function loadStats() {
+            try {
+                const [s, c, b, p] = await Promise.all([
+                    sitesAPI.list().catch(() => ({ data: [] })),
+                    crmAPI.contacts().catch(() => ({ data: [] })),
+                    bookingsAPI.bookings().catch(() => ({ data: [] })),
+                    paymentsAPI.payments().catch(() => ({ data: [] })),
+                ]);
+                const siteList = s.data?.results || s.data || [];
+                const contactList = c.data?.results || c.data || [];
+                const bookingList = b.data?.results || b.data || [];
+                const paymentList = p.data?.results || p.data || [];
+                const rev = paymentList
+                    .filter((p: { status: string }) => p.status === "completed")
+                    .reduce((sum: number, p: { amount: string }) => sum + parseFloat(p.amount || "0"), 0);
+                setStats({
+                    sites: siteList.length,
+                    contacts: contactList.length,
+                    bookings: bookingList.length,
+                    revenue: rev,
+                });
+            } catch (e) {
+                console.error("Failed to load dashboard stats", e);
+            }
+        }
+        loadStats();
+    }, []);
     return (
         <div className="p-8">
             {/* Header */}
@@ -12,10 +55,10 @@ export default function DashboardPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: "Sites", value: "0", icon: "🌐" },
-                    { label: "Contacts", value: "0", icon: "👥" },
-                    { label: "Bookings", value: "0", icon: "📅" },
-                    { label: "Revenue", value: "$0", icon: "💰" },
+                    { label: "Sites", value: stats.sites.toString(), icon: "🌐" },
+                    { label: "Contacts", value: stats.contacts.toString(), icon: "👥" },
+                    { label: "Bookings", value: stats.bookings.toString(), icon: "📅" },
+                    { label: "Revenue", value: `$${stats.revenue.toFixed(2)}`, icon: "💰" },
                 ].map((stat) => (
                     <div
                         key={stat.label}
@@ -34,7 +77,7 @@ export default function DashboardPage() {
             <div className="mb-8">
                 <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-left hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors">
+                    <Link href="/dashboard/agent" className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-left hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors">
                         <span className="text-2xl mb-2 block">🤖</span>
                         <span className="font-semibold text-blue-700 dark:text-blue-400">
                             Talk to your AI Agent
@@ -42,8 +85,8 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-500 mt-1">
                             Build pages, send emails, manage bookings — just ask
                         </p>
-                    </button>
-                    <button className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl text-left hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors">
+                    </Link>
+                    <Link href="/dashboard/sites" className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl text-left hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors">
                         <span className="text-2xl mb-2 block">🌐</span>
                         <span className="font-semibold text-emerald-700 dark:text-emerald-400">
                             Create a Website
@@ -51,8 +94,8 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-500 mt-1">
                             Pick a template or let AI build one based on your niche
                         </p>
-                    </button>
-                    <button className="p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-xl text-left hover:bg-purple-100 dark:hover:bg-purple-950/50 transition-colors">
+                    </Link>
+                    <Link href="/dashboard/crm" className="p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-xl text-left hover:bg-purple-100 dark:hover:bg-purple-950/50 transition-colors">
                         <span className="text-2xl mb-2 block">📧</span>
                         <span className="font-semibold text-purple-700 dark:text-purple-400">
                             Import Contacts
@@ -60,7 +103,7 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-500 mt-1">
                             Upload a CSV or add contacts manually to get started
                         </p>
-                    </button>
+                    </Link>
                 </div>
             </div>
 
