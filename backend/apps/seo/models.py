@@ -7,7 +7,7 @@ class SEOSettings(models.Model):
     """Per-site SEO configuration."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    site = models.OneToOneField("sites.Site", on_delete=models.CASCADE, related_name="seo_settings")
+    site = models.OneToOneField("site_builder.Site", on_delete=models.CASCADE, related_name="seo_settings")
     auto_seo_enabled = models.BooleanField(default=True)
     schema_markup_enabled = models.BooleanField(default=True)
     schema_types = models.JSONField(default=list, blank=True)  # ["LocalBusiness", "Organization", ...]
@@ -43,7 +43,7 @@ class SEOAudit(models.Model):
     """Periodic SEO audit results."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    site = models.ForeignKey("sites.Site", on_delete=models.CASCADE, related_name="seo_audits")
+    site = models.ForeignKey("site_builder.Site", on_delete=models.CASCADE, related_name="seo_audits")
     score = models.IntegerField(default=0)  # 0-100
     issues = models.JSONField(default=list)  # [{type, severity, page, description, fix}]
     recommendations = models.JSONField(default=list)
@@ -64,7 +64,7 @@ class TrackedKeyword(models.Model):
     """Keyword rank tracking."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    site = models.ForeignKey("sites.Site", on_delete=models.CASCADE, related_name="tracked_keywords")
+    site = models.ForeignKey("site_builder.Site", on_delete=models.CASCADE, related_name="tracked_keywords")
     keyword = models.CharField(max_length=255)
     current_rank = models.IntegerField(null=True, blank=True)
     previous_rank = models.IntegerField(null=True, blank=True)
@@ -72,7 +72,7 @@ class TrackedKeyword(models.Model):
     search_volume = models.IntegerField(null=True, blank=True)
     difficulty = models.IntegerField(null=True, blank=True)
     # Mapped page
-    ranking_page = models.ForeignKey("sites.Page", on_delete=models.SET_NULL, null=True, blank=True)
+    ranking_page = models.ForeignKey("site_builder.Page", on_delete=models.SET_NULL, null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
     history = models.JSONField(default=list, blank=True)  # [{date, rank}]
     created_at = models.DateTimeField(default=timezone.now)
@@ -107,9 +107,9 @@ class InternalLinkSuggestion(models.Model):
     """AI-generated internal linking suggestions between pages."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    site = models.ForeignKey("sites.Site", on_delete=models.CASCADE, related_name="link_suggestions")
-    source_page = models.ForeignKey("sites.Page", on_delete=models.CASCADE, related_name="outbound_suggestions")
-    target_page = models.ForeignKey("sites.Page", on_delete=models.CASCADE, related_name="inbound_suggestions")
+    site = models.ForeignKey("site_builder.Site", on_delete=models.CASCADE, related_name="link_suggestions")
+    source_page = models.ForeignKey("site_builder.Page", on_delete=models.CASCADE, related_name="outbound_suggestions")
+    target_page = models.ForeignKey("site_builder.Page", on_delete=models.CASCADE, related_name="inbound_suggestions")
     anchor_text = models.CharField(max_length=255)
     context = models.TextField(blank=True)  # Where in the source page to add the link
     confidence = models.FloatField(default=0)  # 0-1
@@ -129,7 +129,7 @@ class PageSpeedMetrics(models.Model):
     """Core Web Vitals and page speed metrics per page."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    page = models.ForeignKey("sites.Page", on_delete=models.CASCADE, related_name="speed_metrics")
+    page = models.ForeignKey("site_builder.Page", on_delete=models.CASCADE, related_name="speed_metrics")
     # Core Web Vitals
     lcp = models.FloatField(null=True, blank=True)  # Largest Contentful Paint (seconds)
     fid = models.FloatField(null=True, blank=True)  # First Input Delay (ms)
