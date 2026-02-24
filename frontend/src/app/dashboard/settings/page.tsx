@@ -128,7 +128,7 @@ export default function SettingsPage() {
                                 onChange={(e) => setAgentConfig({ ...agentConfig, temperature: parseFloat(e.target.value) })}
                                 className="w-full"
                             />
-                            <span className="text-sm text-gray-500">{agentConfig.temperature || 0.7}</span>
+                            <span className="text-sm text-gray-500">{String(agentConfig.temperature || 0.7)}</span>
                         </div>
 
                         <div>
