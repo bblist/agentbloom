@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from django.utils import timezone
+from django.utils import timezone as django_tz
 
 
 class Service(models.Model):
@@ -33,7 +33,7 @@ class Service(models.Model):
     booking_page_description = models.TextField(blank=True)
     booking_page_image_url = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -55,7 +55,7 @@ class AvailabilitySchedule(models.Model):
     # Weekly schedule: {0: [{start: "09:00", end: "17:00"}], 1: [...], ...}
     weekly_hours = models.JSONField(default=dict)
     is_default = models.BooleanField(default=False)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -118,7 +118,7 @@ class Booking(models.Model):
     # Reschedule tracking
     rescheduled_from = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
     reschedule_count = models.IntegerField(default=0)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -142,7 +142,7 @@ class BookingSeries(models.Model):
     recurrence_rule = models.CharField(max_length=255)  # RRULE format
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "booking_series"
@@ -164,7 +164,7 @@ class Event(models.Model):
     max_attendees = models.IntegerField(default=0)  # 0 = unlimited
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "events"
@@ -185,7 +185,7 @@ class EventRegistration(models.Model):
         ("cancelled", "Cancelled"),
         ("attended", "Attended"),
     ], default="registered")
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "event_registrations"
@@ -204,7 +204,7 @@ class GoogleCalendarConnection(models.Model):
     sync_token = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
     last_synced = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "google_calendar_connections"
@@ -229,7 +229,7 @@ class Waitlist(models.Model):
         ("expired", "Expired"),
     ], default="waiting")
     notified_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "waitlists"
@@ -250,7 +250,7 @@ class BookingAnalytics(models.Model):
     revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     avg_rating = models.FloatField(default=0)
     popular_times = models.JSONField(default=dict, blank=True)  # {hour: count}
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "booking_analytics"

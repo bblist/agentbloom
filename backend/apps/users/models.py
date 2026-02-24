@@ -2,7 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from django.utils import timezone
+from django.utils import timezone as django_tz
 
 
 class UserManager(BaseUserManager):
@@ -59,7 +59,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     timezone = models.CharField(max_length=100, default="UTC")
     language = models.CharField(max_length=10, default="en")
     metadata = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
@@ -89,7 +89,7 @@ class Organization(models.Model):
     logo_url = models.URLField(blank=True)
     brand_colors = models.JSONField(default=dict, blank=True)  # {primary, secondary, accent}
     settings = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -113,7 +113,7 @@ class OrgMember(models.Model):
     org = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="members")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default="member")
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "org_members"
@@ -134,7 +134,7 @@ class AuditLog(models.Model):
     resource_id = models.UUIDField(null=True, blank=True)
     details = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "audit_logs"
@@ -161,7 +161,7 @@ class OnboardingProgress(models.Model):
     step_agent_intro = models.BooleanField(default=False)
     step_tour = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -192,8 +192,8 @@ class UserSession(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     location = models.CharField(max_length=255, blank=True)  # City, Country
     is_current = models.BooleanField(default=False)
-    last_active = models.DateTimeField(default=timezone.now)
-    created_at = models.DateTimeField(default=timezone.now)
+    last_active = models.DateTimeField(default=django_tz.now)
+    created_at = models.DateTimeField(default=django_tz.now)
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -221,7 +221,7 @@ class Invitation(models.Model):
     ], default="pending")
     accepted_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField()
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "invitations"
@@ -244,7 +244,7 @@ class APIKey(models.Model):
     is_active = models.BooleanField(default=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_tz.now)
 
     class Meta:
         db_table = "api_keys"
